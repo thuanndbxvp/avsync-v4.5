@@ -132,7 +132,7 @@ print("[OK] backward-compat symbols (auto_edit + ai_prompts)")
 
 # ---------- Test 8: real SRT file (semantic boundary) ----------
 import os
-srt_path = r"d:\auto-edit-video-input\test_semantic_split.srt"
+srt_path = r"d:\auto-edit-video-main\tests\test_semantic_split.srt"
 if os.path.isfile(srt_path):
     segs = parse_srt(srt_path)
     scenes = group_scenes(segs, target=8.0)
@@ -178,7 +178,7 @@ print("[OK] workers + UI imports")
 # M1.5 mới: hard limit chốt tại seg4 (duration=14 > 13) -> cảnh 1 (4 segments, 0-14s).
 #             behavior khác M1 cũ — expected vì M1 cũ ngắt giữa câu dài không punct.
 # Test M1.5 muốn: 1 cảnh rất dài (14s) — đây là behavior mới đúng (hard limit bảo vệ).
-segs = parse_srt(r"d:\auto-edit-video-input\test_milestone1.srt")
+segs = parse_srt(r"d:\auto-edit-video-main\tests\test_milestone1.srt")
 scenes = group_scenes(segs, target=8.0)
 assert len(scenes) == 1, f"Expected 1 scene (hard limit kicked in), got {len(scenes)}"
 # 1 cảnh từ start=1.0 đến end=14.0 = 13.0s

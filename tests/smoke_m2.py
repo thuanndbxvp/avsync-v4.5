@@ -171,7 +171,7 @@ import auto_edit as ae
 assert callable(ae.parse_srt)
 assert callable(ae._ass_time)
 assert _ends_with_punctuation("Hi.") is True
-segs = parse_srt(r"d:\auto-edit-video-input\test_milestone1.srt")
+segs = parse_srt(r"d:\auto-edit-video-main\tests\test_milestone1.srt")
 scenes = group_scenes(segs, 8.0)
 assert len(scenes) >= 1
 print("[OK] M1 + M1.5 backward-compat (parse_srt, group_scenes, _ends_with_punct)")

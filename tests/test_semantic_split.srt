@@ -1,0 +1,23 @@
+1
+00:00:00,000 --> 00:00:02,500
+Chào mừng đến với hướng dẫn Milestone 1.5!
+
+2
+00:00:02,500 --> 00:00:05,500
+Hôm nay chúng ta sẽ học về semantic split.
+
+3
+00:00:05,500 --> 00:00:08,500
+Tính năng này giúp tự động tách cảnh theo nghĩa.
+
+4
+00:00:08,500 --> 00:00:10,500
+The ending punctuation helps ending a scene.
+
+5
+00:00:10,500 --> 00:00:13,500
+This is amazing, and the system is robust.
+
+6
+00:00:13,500 --> 00:00:20,500
+This is scene number two for Milestone 1.5 testing.

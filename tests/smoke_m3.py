@@ -228,7 +228,7 @@ print("[OK] core/worker_* + ui/main_window + ui/tabs + build_scenes + ai_prompts
 # ---------- Test 16: M1 + M1.5 + M2 backward-compat ----------
 from domain.timeline import parse_srt, group_scenes, _ends_with_punctuation
 assert _ends_with_punctuation("Hi.") is True
-segs5 = parse_srt(r"d:\auto-edit-video-input\test_milestone1.srt")
+segs5 = parse_srt(r"d:\auto-edit-video-main\tests\test_milestone1.srt")
 scenes5 = group_scenes(segs5, 8.0)
 assert len(scenes5) >= 1
 print("[OK] M1 + M1.5 backward-compat (parse_srt, group_scenes)")

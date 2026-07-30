@@ -1,0 +1,15 @@
+1
+00:00:01,000 --> 00:00:03,500
+Xin chào các bạn, hôm nay mình sẽ giới thiệu
+
+2
+00:00:04,000 --> 00:00:06,500
+video test milestone 1 không có end punct
+
+3
+00:00:07,000 --> 00:00:10,000
+mục đích để trigger hard limit tại 13s
+
+4
+00:00:10,500 --> 00:00:14,000
+refactor domain layer hoàn tất
