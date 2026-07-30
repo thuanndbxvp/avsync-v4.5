@@ -31,6 +31,19 @@ from domain.visual_style import (
     norm_key as _norm_key,
 )
 
+# Milestone 2 refactor — re-export ASYNC orchestration từ services.prompt_service.
+# `generate_prompts` giờ là SYNC SHIM (asyncio.run(async)) để code sync cũ (worker_prompt
+# + ui.tabs.tab_prompt + tests) vẫn gọi được. Bên trong nó là 1 hàm async thật sự chạy
+# song song qua AsyncAIPool (semaphore + gather).
+from services.prompt_service import (
+    generate_prompts_async,
+    generate_motion_prompts_async,
+    generate_prompts,
+    generate_motion_prompts,
+    generate_chain_prompts,
+    qc_scene_match,
+)
+
 # Model ưu tiên cho từng NHÀ CUNG CẤP (cái ĐẦU = rẻ/tốt mặc định, sau là dự phòng).
 MODELS = {
     "gemini": ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash-lite"],
@@ -449,134 +462,28 @@ def _inject_character(system, character):
     return system[:idx] + block + "\n\n" + system[idx:]
 
 
-def _run_batches(system, scenes_text, api_key, model, batch, progress, provider):
-    """Gọi AI theo batch (tự retry/đổi model) + parse JSON -> list[str] thô.
-    Dùng chung cho prompt nội dung lẫn prompt chuyển động (image-to-video)."""
-    pref = MODELS.get(provider, MODELS["gemini"])
-    order = ([model] if model else []) + [m for m in pref if m != model]
-    chosen = None
-    out = []
-    n = len(scenes_text)
-    for start in range(0, n, batch):
-        chunk = scenes_text[start:start + batch]
-        listing = "\n".join(f"{i + 1}. {t}" for i, t in enumerate(chunk))
-        user = (f"Here are {len(chunk)} scenes. Write one prompt for each, "
-                f"returning a JSON array of exactly {len(chunk)} strings, in order.\n\n{listing}")
-        if out:
-            # CHỐNG LẶP QUA RANH GIỚI BATCH: cho AI thấy 2 prompt CUỐI của batch trước
-            # để batch sau không mở đầu bằng đúng cỡ cảnh/chuyển động máy vừa dùng.
-            tail = [p for p in out[-2:] if (p or "").strip()]
-            if tail:
-                prev = "\n".join(f"- {p}" for p in tail)
-                user = (f"CONTEXT — the prompts for the scenes immediately BEFORE these "
-                        f"(already written) were:\n{prev}\n"
-                        f"Continue the variety: do NOT open with the same shot type or "
-                        f"camera move as those.\n\n{user}")
-        txt, last, parsed = None, None, None
-        for attempt in range(4):     # tự thử lại khi lỗi tạm thời (429/500/503)
-            models_try = ([chosen] if chosen else []) + [m for m in order if m != chosen]
-            for m in models_try:
-                try:
-                    txt = _call(provider, api_key, m, system, user)
-                    chosen = m
-                    break
-                except GeminiError as e:
-                    last = e
-                    if e.code in (404, 429, 500, 503):
-                        continue
-                    raise RuntimeError(_friendly(e))
-            if txt is None:
-                chosen = None
-                time.sleep(2 * (attempt + 1))
-                continue
-            # Parse kết quả + kiểm tra prompt rỗng
-            candidate = _parse_array(txt, len(chunk))
-            empty_idx = [i + 1 for i, p in enumerate(candidate) if not p.strip()]
-            if not empty_idx or attempt == 3:
-                # Không có rỗng, hoặc đã hết lượt retry -> chấp nhận
-                if empty_idx:
-                    print(f"  ⚠️  Batch cảnh {start+1}–{start+len(chunk)}: "
-                          f"prompt RỖNG tại vị trí {empty_idx} (hết retry)", file=sys.stderr)
-                parsed = candidate
-                break
-            # Còn prompt rỗng + còn lượt retry -> thử lại batch này
-            print(f"  ⚠️  Batch cảnh {start+1}–{start+len(chunk)}: "
-                  f"prompt RỖNG tại vị trí {empty_idx}, retry ({attempt+1}/3)...", file=sys.stderr)
-            time.sleep(2)
-        if parsed is None:
-            raise RuntimeError(_friendly(last) if last else "Không sinh được prompt.")
-        out.extend(parsed)
-        if progress:
-            progress(min(start + batch, n), n)
-    return out
-
-
-def generate_prompts(scenes_text, style, api_key, model=None,
-                     batch=None, progress=None, mode="video", embed_style=True,
-                     style_mode=None, provider="gemini", character="", title=""):
-    """
-    scenes_text : list[str] — lời nói của từng cảnh, theo thứ tự.
-    style       : str       — Visual Style Profile của kênh.
-    provider    : "gemini" | "openai" | "claude" — nhà cung cấp API để gọi.
-    mode        : "video" (có chuyển động) | "image" (ảnh tĩnh).
-    style_mode  : "in_prompt" = TOOL ghép câu ART-STYLE cố định + Gemini lo nội dung+màu/era.
-                  "lock_art"  = Lock của tool video lo NÉT; Gemini lo nội dung + MÀU/ERA
-                                (KHÔNG ghép caption art-style).
-                  "lock_all"  = Lock lo TẤT CẢ style; Gemini chỉ viết nội dung (không màu).
-                  None -> suy ra từ embed_style (True->"in_prompt", False->"lock_all").
-    embed_style : (giữ tương thích cũ) chỉ dùng khi style_mode=None.
-    Trả về list[str] prompt, cùng độ dài scenes_text. Tự đổi model nếu 429/404.
-    """
-    if not api_key or not api_key.strip():
-        raise RuntimeError("Chưa nhập API key (vào tab Cài đặt).")
-    if batch is None:
-        batch = DEFAULT_BATCH.get(provider, 12)
-
-    if style_mode is None:                       # tương thích cách gọi cũ
-        style_mode = "in_prompt" if embed_style else "lock_all"
-    if style_mode == "in_prompt" and (not style or not style.strip()):
-        raise RuntimeError("Chưa có Style Profile (vào tab Cài đặt để thêm/chọn).")
-
-    api_key = api_key.strip()
-    caption = ""
-    mode_keys = _scene_mode_keys(style)
-    has_modes = _scene_modes_present(style)
-    if style_mode == "lock_all":
-        # Lock của tool video lo TẤT CẢ style (kể cả màu) -> Gemini chỉ nội dung thuần.
-        system = SYSTEM_CONTENT_IMAGE if mode == "image" else SYSTEM_CONTENT_VIDEO
-    elif style_mode == "lock_art":
-        # Lock lo NÉT; Gemini lo NỘI DUNG + MÀU/ERA (KHÔNG ghép caption art-style).
-        if has_modes:
-            template = SYSTEM_SPLIT_IMAGE if mode == "image" else SYSTEM_SPLIT_VIDEO
-            system = template.format(style=_style_for_ai(style))
-        else:
-            system = SYSTEM_CONTENT_IMAGE if mode == "image" else SYSTEM_CONTENT_VIDEO
-    else:  # "in_prompt": TOOL tự ghép art-style + Gemini lo nội dung + màu/era -> đồng nhất 100%.
-        caption = _style_caption(style)
-        if has_modes:
-            template = SYSTEM_SPLIT_IMAGE if mode == "image" else SYSTEM_SPLIT_VIDEO
-            system = template.format(style=_style_for_ai(style))
-        else:
-            system = SYSTEM_CONTENT_IMAGE if mode == "image" else SYSTEM_CONTENT_VIDEO
-    system = _inject_character(system, character)   # nếu có nhân vật chính
-    system = _title_context(title) + system         # tiêu đề video → ngữ cảnh tổng thể
-    out = _run_batches(system, scenes_text, api_key, model, batch, progress, provider)
-
-    # Hậu xử lý: dọn tên key rò rỉ (scene_mode + character) + ghép câu ART-STYLE.
-    leak_keys = mode_keys + _character_keys(style)
-    result = []
-    for p in out:
-        p = _strip_mode_keys((p or "").strip(), leak_keys)
-        if caption and p:
-            p = f"{caption} {p}"
-        result.append(p)
-    return result
+# (CORE generate_prompts, _run_batches, generate_motion_prompts, generate_chain_prompts
+#  đã được re-export từ services.prompt_service ở phần import. Giữ lại các constants
+#  SYSTEM_MOTION / SYSTEM_CHAIN_MOTION / SYSTEM_QC ở file này vì code khác (vd app_legacy.py)
+#  có thể reference; services.prompt_service dùng lazy import qua _get_provider_consts.)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # IMAGE-TO-VIDEO: prompt CHUYỂN ĐỘNG (áp lên ảnh keyframe đã tạo sẵn).
 # Ảnh đã chứa nhân vật + bối cảnh + màu + style -> motion CHỈ tả camera + hành động.
 # ─────────────────────────────────────────────────────────────────────────────
+
+
+# (generate_prompts, generate_motion_prompts, generate_chain_prompts, qc_scene_match
+#  đã được re-export từ services.prompt_service ở phần import.)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IMAGE-TO-VIDEO: prompt CHUYỂN ĐỘNG (áp lên ảnh keyframe đã tạo sẵn).
+# Ảnh đã chứa nhân vật + bối cảnh + màu + style -> motion CHỈ tả camera + hành động.
+# ─────────────────────────────────────────────────────────────────────────────
+# (SYSTEM_MOTION + SYSTEM_CHAIN_MOTION + SYSTEM_QC là constants dùng bởi
+# services.prompt_service. Giữ ở đây để khỏi tạo duplicate.)
 SYSTEM_MOTION = """You write IMAGE-TO-VIDEO motion prompts. For EACH scene you are given its NARRATION and a description of its KEYFRAME IMAGE that has ALREADY been drawn (the character, setting, objects, colours and art style are fixed in that image). Write ONE English line (about 10-20 words) describing how to ANIMATE THAT EXACT KEYFRAME: a CAMERA move PLUS a concrete VISIBLE motion.
 
 CRITICAL — STAY INSIDE THE KEYFRAME (this is the most important rule):
@@ -593,34 +500,7 @@ You MUST NOT describe appearance, clothes, art style, colours, lighting or the b
 Return ONLY a JSON array of strings, exactly one per scene, in the SAME ORDER. No commentary, no extra keys."""
 
 
-def generate_motion_prompts(scenes_text, api_key, image_prompts=None, model=None, batch=None,
-                            progress=None, provider="gemini", character="", title=""):
-    """Sinh prompt CHUYỂN ĐỘNG cho image-to-video (1 dòng/cảnh, camera + hành động).
-    image_prompts: mô tả ẢNH keyframe đã sinh (mỗi cảnh 1) — GHÉP vào input để motion KHỚP
-    đúng nội dung ảnh (không bịa vật thể/người không có trong ảnh, vd ảnh là bản đồ/bàn cờ mà
-    motion lại tả lính/khói). None -> chỉ dùng narration (giữ tương thích cũ)."""
-    if not api_key or not api_key.strip():
-        raise RuntimeError("Chưa nhập API key (vào tab Cài đặt).")
-    if batch is None:
-        batch = DEFAULT_BATCH.get(provider, 12)
-    api_key = api_key.strip()
-    if image_prompts:                         # ghép mỗi cảnh = NARRATION + mô tả KEYFRAME
-        feed = []
-        for i, narr in enumerate(scenes_text):
-            img = ((image_prompts[i] if i < len(image_prompts) else "") or "").strip()
-            if img:
-                feed.append(f"NARRATION: {narr}\n   KEYFRAME IMAGE (already drawn — animate THIS "
-                            f"exact image, do not add anything not shown): {img}")
-            else:
-                feed.append(f"NARRATION: {narr}")
-    else:
-        feed = scenes_text
-    char = (f'If the main character "{character.strip()}" appears, you may use the name in '
-            f"the action.") if (character and character.strip()) else ""
-    system = _title_context(title) + SYSTEM_MOTION.format(char=char)
-    out = _run_batches(system, feed, api_key, model, batch, progress, provider)
-    return [(p or "").strip() for p in out]
-
+# (generate_motion_prompts đã được re-export từ services.prompt_service ở phần import.)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ẢNH ĐẦU→CUỐI (chuỗi GỐI ĐẦU) — cho Veo "Frames to Video".
@@ -637,46 +517,7 @@ RULES:
 Return ONLY a JSON array of strings, exactly one per clip, in the SAME ORDER. No commentary, no extra keys."""
 
 
-def generate_chain_prompts(scenes_text, style, api_key, model=None, batch=None,
-                           progress=None, style_mode=None, provider="gemini",
-                           character="", title=""):
-    """Chế độ ẢNH ĐẦU→CUỐI (chuỗi gối đầu) cho Veo Frames-to-Video.
-    N cảnh -> N+1 prompt ẢNH liên hoàn (mỗi ảnh = mốc mở đầu 1 cảnh, + 1 ảnh KẾT) +
-    N prompt CHUYỂN ĐỘNG (clip i nối ảnh i -> ảnh i+1). Ngoại hình nhân vật do ref lo nên
-    prompt chỉ tả hành động/trạng thái/bối cảnh; cả chuỗi giữ cùng nhân vật + mạch truyện.
-    Trả (image_prompts[N+1], motion_prompts[N])."""
-    if not api_key or not api_key.strip():
-        raise RuntimeError("Chưa nhập API key (vào tab Cài đặt).")
-    n = len(scenes_text)
-    if n == 0:
-        return [], []
-    if batch is None:
-        batch = DEFAULT_BATCH.get(provider, 12)
-    api_key = api_key.strip()
-
-    # 1) Chuỗi N+1 prompt ẢNH: N mốc "mở đầu mỗi cảnh" + 1 mốc "kết". Nhúng ngữ cảnh LIÊN HOÀN
-    #    vào từng mục để AI giữ cùng nhân vật/bối cảnh (tái dùng generate_prompts để lo style).
-    feed_img = [f"[Keyframe in ONE continuous story — SAME characters and setting throughout. "
-                f"OPENING moment of scene {i + 1} of {n}] {narr}"
-                for i, narr in enumerate(scenes_text)]
-    feed_img.append(f"[Keyframe in ONE continuous story — SAME characters and setting. FINAL "
-                    f"closing moment, right after scene {n}] {scenes_text[-1]}")
-    img_prompts = generate_prompts(feed_img, style, api_key, model=model, batch=batch,
-                                   progress=progress, mode="image", style_mode=style_mode,
-                                   provider=provider, character=character, title=title)
-
-    # 2) N prompt CHUYỂN ĐỘNG: mỗi clip nhìn CẢ ảnh đầu (START) + ảnh cuối (END).
-    char = (f'If the main character "{character.strip()}" appears, you may use the name in '
-            f"the action.") if (character and character.strip()) else ""
-    feed_motion = []
-    for i in range(n):
-        a = (img_prompts[i] if i < len(img_prompts) else "").strip()
-        b = (img_prompts[i + 1] if i + 1 < len(img_prompts) else "").strip()
-        feed_motion.append(f"NARRATION: {scenes_text[i]}\n   START FRAME: {a}\n   END FRAME: {b}")
-    system = _title_context(title) + SYSTEM_CHAIN_MOTION.format(char=char)
-    motion = _run_batches(system, feed_motion, api_key, model, batch, progress, provider)
-    motion = [(p or "").strip() for p in motion]
-    return img_prompts, motion
+# (generate_chain_prompts đã được re-export từ services.prompt_service ở phần import.)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -689,40 +530,4 @@ SYSTEM_QC = ("You are a video QC assistant. For each scene you get the NARRATION
 '"reason": "<short reason in Vietnamese>"}. good=khớp rõ, weak=tạm/chung chung, off=lệch nghĩa.')
 
 
-def qc_scene_match(scenes, api_key, model=None, provider="gemini", batch=25, progress=None):
-    """Đối chiếu khớp nghĩa. scenes: list[{'scene','text','prompt'}].
-    Trả list[{scene, verdict(good|weak|off), reason}]. Tự đổi model nếu 429/404."""
-    if not api_key or not api_key.strip():
-        raise RuntimeError("Chưa nhập API key (vào tab Cài đặt).")
-    api_key = api_key.strip()
-    pref = MODELS.get(provider, MODELS["gemini"])
-    order = ([model] if model else []) + [m for m in pref if m != model]
-    out, chosen, n = [], None, len(scenes)
-    for start in range(0, n, batch):
-        chunk = scenes[start:start + batch]
-        listing = "\n".join(
-            f'{s["scene"]}. NARRATION: {s["text"]}\n   IMAGE: {s["prompt"]}' for s in chunk)
-        user = f"Judge these scenes:\n\n{listing}"
-        txt, last = None, None
-        models_try = ([chosen] if chosen else []) + [m for m in order if m != chosen]
-        for m in models_try:
-            try:
-                txt = _call(provider, api_key, m, SYSTEM_QC, user)
-                chosen = m
-                break
-            except GeminiError as e:
-                last = e
-                if e.code in (404, 429, 500, 503):
-                    continue
-                raise RuntimeError(_friendly(e))
-        if txt is None:
-            raise RuntimeError(_friendly(last) if last else "QC lỗi.")
-        mt = re.search(r"\[.*\]", txt, re.S)
-        if mt:
-            try:
-                out += json.loads(mt.group(0))
-            except Exception:  # noqa
-                pass
-        if progress:
-            progress(min(start + batch, n), n)
-    return out
+# (qc_scene_match đã được re-export từ services.prompt_service ở phần import.)
