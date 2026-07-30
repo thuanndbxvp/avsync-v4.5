@@ -130,6 +130,25 @@ class MainWindow(QMainWindow):
         html = f'<span style="color: {color};">{text}</span>'
         self.console_log.append(html)
 
+    # ---------------------------------------------------------------- M6 — Queue bridge
+    def add_queue_job(self, job_dict):
+        """API public: Tab Render push job vào Tab Queue.
+        Forward tới QueueTab.add_job() — nếu Queue tab chưa build thì warning.
+        """
+        if hasattr(self, "tab_queue") and hasattr(self.tab_queue, "add_job"):
+            self.tab_queue.add_job(job_dict)
+            self.append_log(
+                f"➕ Đã thêm job vào hàng đợi: {job_dict.get('output', '?')}",
+                "#28A745",
+            )
+            # Auto-switch sang Queue tab để user thấy
+            self.switch_tab(3)
+        else:
+            self.append_log(
+                f"[WARN] QueueTab chưa khởi tạo hoặc không có add_job()",
+                "#ba1a1a",
+            )
+
     def switch_tab(self, index):
         for i, btn in enumerate(self.nav_buttons):
             btn.setChecked(i == index)

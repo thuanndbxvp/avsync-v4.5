@@ -1,32 +1,48 @@
 # -*- coding: utf-8 -*-
-import json
+"""ui.tabs.tab_prompt — Tạo Prompt (M6: Auto/Manual pacing + Style Mode + Provider).
+
+M6 additions:
+  1. Pacing UX: Auto (target secs) vs Manual (desired scenes count)
+  2. Style Mode group: in_prompt / lock_art / lock_all
+  3. Provider + Model dropdown (load từ ConfigService)
+  4. Đè file warning khi dir trỏ tới nơi đã có veo_prompts.txt
+  5. Auto-fill khi thay đổi profile (load text mẫu vào editor tạm)
+"""
+from __future__ import annotations
+
 import os
+
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QFrame, QLabel, QLineEdit, QPushButton, QComboBox,
-    QSpinBox, QRadioButton, QButtonGroup, QFileDialog, QMessageBox,
-    QScrollArea
+    QSpinBox, QDoubleSpinBox, QRadioButton, QButtonGroup,
+    QFileDialog, QMessageBox, QScrollArea,
 )
-from core.worker_prompt import PromptWorker
+from PySide6.QtCore import Qt
 
-def load_config():
-    """Tải config, có fallback an toàn nếu chưa có file."""
-    fallback = {"profiles": {"Người que": "Mặc định", "Phong cách 3D": "Mặc định"}}
-    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config.local.json")
-    if os.path.exists(config_path):
-        try:
-            with open(config_path, 'r', encoding='utf-8-sig') as f:
-                data = json.load(f)
-                if "profiles" in data and len(data["profiles"]) > 0:
-                    return data
-        except Exception:
-            pass
-    return fallback
+from core.worker_prompt import PromptWorker
+from services.config_service import ConfigService
+
+
+# Provider → default model list (sync với tab_settings)
+_PROVIDER_MODELS = {
+    "gemini":    ["gemini-2.0-flash-exp", "gemini-2.0-flash-thinking-exp",
+                  "gemini-2.5-flash", "gemini-2.5-pro"],
+    "openai":    ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"],
+    "anthropic": ["claude-3-5-sonnet-latest", "claude-3-5-haiku-latest",
+                  "claude-3-opus-latest"],
+}
+
+
+def _load_config() -> dict:
+    """Backward-compat helper: load qua ConfigService (M6a)."""
+    return ConfigService.instance().load()
+
 
 class PromptTab(QWidget):
     def __init__(self):
         super().__init__()
-        self.cfg = load_config()
+        self.cfg = _load_config()
         self.setup_ui()
 
     def setup_ui(self):
@@ -48,7 +64,6 @@ class PromptTab(QWidget):
         card1 = QFrame()
         card1.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #DEE2E6; border-radius: 8px; }")
         layout1 = QVBoxLayout(card1)
-        layout1.setContentsMargins(20, 20, 20, 20)
 
         lbl_title1 = QLabel("📁 Cài đặt Nguyên liệu")
         lbl_title1.setStyleSheet("font-size: 16px; font-weight: bold; color: #191B24; border: none;")
@@ -71,7 +86,7 @@ class PromptTab(QWidget):
         row0.addWidget(btn_srt)
         grid1.addLayout(row0, 0, 1)
 
-        # Tiêu đề
+        # Title
         lbl_title = QLabel("Tiêu đề video:")
         lbl_title.setStyleSheet("border: none; font-weight: 500;")
         grid1.addWidget(lbl_title, 1, 0)
@@ -91,12 +106,12 @@ class PromptTab(QWidget):
         row2.addWidget(btn_dir)
         grid1.addLayout(row2, 2, 1)
 
-        # Style Profile
+        # Style Profile (load từ ConfigService)
         lbl_profile = QLabel("Style Profile:")
         lbl_profile.setStyleSheet("border: none; font-weight: 500;")
         grid1.addWidget(lbl_profile, 3, 0)
         self.profile_combo = QComboBox()
-        self.profile_combo.addItems(list(self.cfg.get("profiles", {}).keys()))
+        self._populate_profiles()
         grid1.addWidget(self.profile_combo, 3, 1)
 
         # Main Character
@@ -114,25 +129,105 @@ class PromptTab(QWidget):
         card2 = QFrame()
         card2.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #DEE2E6; border-radius: 8px; }")
         layout2 = QVBoxLayout(card2)
-        layout2.setContentsMargins(20, 20, 20, 20)
         layout2.setSpacing(16)
 
         lbl_title2 = QLabel("⚙️ Tùy chọn Prompt chi tiết")
         lbl_title2.setStyleSheet("font-size: 16px; font-weight: bold; color: #191B24; border: none;")
         layout2.addWidget(lbl_title2)
 
-        row_secs = QHBoxLayout()
-        lbl_secs = QLabel("Số giây mỗi cảnh:")
-        lbl_secs.setStyleSheet("border: none; font-weight: 500;")
-        self.spin_secs = QSpinBox()
-        self.spin_secs.setRange(2, 3600)
-        self.spin_secs.setValue(8)
-        self.spin_secs.setFixedWidth(80)
-        row_secs.addWidget(lbl_secs)
-        row_secs.addWidget(self.spin_secs)
-        row_secs.addStretch()
-        layout2.addLayout(row_secs)
+        # ----- PACING UX (M6d) — Auto / Manual -----
+        pacing_frame = QFrame()
+        pacing_frame.setStyleSheet(
+            "QFrame { background: #F8F9FA; border-radius: 6px; padding: 8px; }"
+        )
+        pacing_layout = QVBoxLayout(pacing_frame)
+        pacing_layout.setContentsMargins(8, 8, 8, 8)
 
+        lbl_pacing = QLabel("⏱ Pacing (chia cảnh)")
+        lbl_pacing.setStyleSheet("font-weight: bold; border: none;")
+        pacing_layout.addWidget(lbl_pacing)
+
+        # Auto radio + spinbox
+        row_auto = QHBoxLayout()
+        self.rad_auto = QRadioButton("🎯 Tự động (nhập thời lượng trung bình / cảnh)")
+        self.rad_auto.setChecked(True)
+        self.spin_secs = QDoubleSpinBox()
+        self.spin_secs.setRange(1.0, 120.0)
+        self.spin_secs.setSingleStep(0.5)
+        self.spin_secs.setValue(8.0)
+        self.spin_secs.setSuffix(" giây")
+        self.spin_secs.setFixedWidth(120)
+        row_auto.addWidget(self.rad_auto)
+        row_auto.addWidget(self.spin_secs)
+        row_auto.addStretch()
+        pacing_layout.addLayout(row_auto)
+
+        # Manual radio + spinbox
+        row_manual = QHBoxLayout()
+        self.rad_manual = QRadioButton("📐 Thủ công (nhập tổng số cảnh mong muốn)")
+        self.spin_desired_scenes = QSpinBox()
+        self.spin_desired_scenes.setRange(1, 999)
+        self.spin_desired_scenes.setValue(50)
+        self.spin_desired_scenes.setSuffix(" cảnh")
+        self.spin_desired_scenes.setFixedWidth(120)
+        self.spin_desired_scenes.setEnabled(False)
+        row_manual.addWidget(self.rad_manual)
+        row_manual.addWidget(self.spin_desired_scenes)
+        row_manual.addStretch()
+        pacing_layout.addLayout(row_manual)
+
+        # Wire toggled → enable/disable
+        self.rad_auto.toggled.connect(self._on_pacing_changed)
+        self.rad_manual.toggled.connect(self._on_pacing_changed)
+
+        layout2.addWidget(pacing_frame)
+
+        # ----- STYLE MODE (M6d) — 3 radios -----
+        lbl_style = QLabel("🎨 Style Mode (cách đưa style vào prompt):")
+        lbl_style.setStyleSheet("font-weight: 500; border: none;")
+        layout2.addWidget(lbl_style)
+
+        self.style_mode_group = QButtonGroup(self)
+        style_modes = [
+            ("📝 Gắn vào prompt (in_prompt)", "in_prompt"),
+            ("🔒 Khóa phong cách (lock_art)", "lock_art"),
+            ("🔐 Khóa toàn bộ (lock_all)", "lock_all"),
+        ]
+        for i, (txt, data) in enumerate(style_modes):
+            rb = QRadioButton(txt)
+            self.style_mode_group.addButton(rb, i)
+            layout2.addWidget(rb)
+        # Default: in_prompt (khớp legacy behavior)
+        self.style_mode_group.button(0).setChecked(True)
+
+        # ----- PROVIDER + MODEL (M6d) -----
+        row_prov = QHBoxLayout()
+        lbl_prov = QLabel("🏢 Provider:")
+        lbl_prov.setStyleSheet("border: none; font-weight: 500;")
+        self.cmb_provider = QComboBox()
+        self.cmb_provider.addItems(list(_PROVIDER_MODELS.keys()))
+        # Load default provider từ config
+        default_prov = self.cfg.get("providers.default_provider", "gemini")
+        idx = self.cmb_provider.findText(default_prov)
+        if idx >= 0:
+            self.cmb_provider.setCurrentIndex(idx)
+        self.cmb_provider.currentTextChanged.connect(self._on_provider_changed)
+        row_prov.addWidget(lbl_prov)
+        row_prov.addWidget(self.cmb_provider)
+        row_prov.addStretch()
+        layout2.addLayout(row_prov)
+
+        row_model = QHBoxLayout()
+        lbl_model = QLabel("🤖 Model:")
+        lbl_model.setStyleSheet("border: none; font-weight: 500;")
+        self.cmb_model = QComboBox()
+        self._refresh_model_list(default_prov)
+        row_model.addWidget(lbl_model)
+        row_model.addWidget(self.cmb_model)
+        row_model.addStretch()
+        layout2.addLayout(row_model)
+
+        # ----- PRODUCE MODE (giữ nguyên M2) -----
         lbl_produce = QLabel("Kiểu sản xuất video:")
         lbl_produce.setStyleSheet("border: none; font-weight: 500;")
         layout2.addWidget(lbl_produce)
@@ -142,9 +237,7 @@ class PromptTab(QWidget):
         rad_video = QRadioButton("🎬 Clip video trực tiếp (1 prompt VIDEO)")
         rad_i2v = QRadioButton("⭐ Clip từ ảnh (2 prompt: ẢNH + CHUYỂN ĐỘNG)")
         rad_chain = QRadioButton("🎞️ Ảnh đầu→cuối (chuỗi gối đầu)")
-
         rad_video.setChecked(True)
-
         for i, rad in enumerate([rad_image, rad_video, rad_i2v, rad_chain]):
             rad.setStyleSheet("border: none;")
             self.produce_group.addButton(rad, i)
@@ -155,44 +248,60 @@ class PromptTab(QWidget):
         # ------------------- 3. ACTION AREA -------------------
         action_layout = QHBoxLayout()
         self.btn_create = QPushButton("🤖 TẠO PROMPT (AI)")
-        self.btn_create.setStyleSheet("""
-            QPushButton {
-                background-color: #0066FF;
-                color: white;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-weight: bold;
-                border-radius: 6px;
-                border: none;
-            }
-            QPushButton:hover { background-color: #0052CC; }
-        """)
+        self.btn_create.setStyleSheet(
+            "QPushButton { background-color: #0066FF; color: white;"
+            " padding: 12px 24px; font-size: 14px; font-weight: bold;"
+            " border-radius: 6px; border: none; }"
+            "QPushButton:hover { background-color: #0052CC; }"
+        )
         self.btn_create.clicked.connect(self.run_make_prompts)
 
         self.btn_open = QPushButton("📄 Mở veo_prompts.txt")
-        self.btn_open.setStyleSheet("""
-            QPushButton {
-                background-color: #E3F2FD;
-                color: #0066FF;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-weight: bold;
-                border-radius: 6px;
-                border: none;
-            }
-            QPushButton:hover { background-color: #BBDEFB; }
-        """)
-        self.btn_open.clicked.connect(self.stub_open_prompts)
+        self.btn_open.setStyleSheet(
+            "QPushButton { background-color: #E3F2FD; color: #0066FF;"
+            " padding: 12px 24px; font-size: 14px; font-weight: bold;"
+            " border-radius: 6px; border: none; }"
+            "QPushButton:hover { background-color: #BBDEFB; }"
+        )
+        self.btn_open.clicked.connect(self.open_prompts)
 
         action_layout.addWidget(self.btn_create)
         action_layout.addWidget(self.btn_open)
         action_layout.addStretch()
-
         layout.addLayout(action_layout)
         layout.addStretch()
 
+    # ---------------------------------------------------------------- Helpers
+    def _populate_profiles(self):
+        profiles = self.cfg.get("profiles", {})
+        self.profile_combo.clear()
+        self.profile_combo.addItems(list(profiles.keys()))
+
+    def _on_pacing_changed(self):
+        if self.rad_auto.isChecked():
+            self.spin_secs.setEnabled(True)
+            self.spin_desired_scenes.setEnabled(False)
+        else:
+            self.spin_secs.setEnabled(False)
+            self.spin_desired_scenes.setEnabled(True)
+
+    def _on_provider_changed(self, provider: str):
+        self._refresh_model_list(provider)
+
+    def _refresh_model_list(self, provider: str):
+        models = _PROVIDER_MODELS.get(provider, [])
+        self.cmb_model.clear()
+        self.cmb_model.addItems(models)
+        saved = self.cfg.get(f"providers.models.{provider}", "")
+        if saved and saved in models:
+            self.cmb_model.setCurrentText(saved)
+
+    # ---------------------------------------------------------------- Browse
     def browse_srt(self):
-        file, _ = QFileDialog.getOpenFileName(self, "Chọn file SRT", "", "SRT Files (*.srt);;All Files (*.*)")
+        file, _ = QFileDialog.getOpenFileName(
+            self, "Chọn file SRT", "",
+            "SRT Files (*.srt);;All Files (*.*)"
+        )
         if file:
             self.srt_input.setText(file)
 
@@ -201,33 +310,134 @@ class PromptTab(QWidget):
         if folder:
             self.dir_input.setText(folder)
 
+    def open_prompts(self):
+        """Mở veo_prompts.txt — nếu không có thì thông báo."""
+        folder = self.dir_input.text().strip()
+        if not folder:
+            folder = os.getcwd()
+        file_path = os.path.join(folder, "veo_prompts.txt")
+        if os.path.exists(file_path):
+            try:
+                if os.name == "nt":
+                    os.startfile(file_path)
+                else:
+                    import subprocess
+                    subprocess.call(["xdg-open", file_path])
+            except Exception as e:
+                QMessageBox.warning(self, "Lỗi", f"Không thể mở file: {e}")
+        else:
+            QMessageBox.information(
+                self, "Không tìm thấy",
+                f"Chưa có file {file_path}.\nVui lòng chạy TẠO PROMPT (AI) trước."
+            )
+
+    # ---------------------------------------------------------------- Run
+    def _compute_target_secs(self) -> float | None:
+        """Tính secs dựa trên Auto/Manual mode.
+        Manual mode: cần parse SRT để tính total_dur / desired_scenes.
+        """
+        if self.rad_auto.isChecked():
+            return float(self.spin_secs.value())
+        # Manual
+        try:
+            import auto_edit as ae
+            srt_path = self.srt_input.text().strip()
+            segs = ae.parse_srt(srt_path)
+            if not segs:
+                raise ValueError("File SRT rỗng hoặc không hợp lệ")
+            total_dur = segs[-1]["end"] - segs[0]["start"]
+            n = max(1, self.spin_desired_scenes.value())
+            return total_dur / n
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi SRT",
+                                 f"Không tính được target_secs ở chế độ Thủ công:\n{e}")
+            return None
+
+    def _check_overwrite(self) -> bool:
+        """Nếu dir đã có veo_prompts.txt -> hỏi user có đè không."""
+        folder = self.dir_input.text().strip()
+        if not folder:
+            return True  # dir rỗng -> chấp nhận (worker sẽ tạo dir cwd)
+        existing = os.path.join(folder, "veo_prompts.txt")
+        if os.path.isfile(existing):
+            ans = QMessageBox.question(
+                self, "Đè file cũ?",
+                f"Đã có file veo_prompts.txt tại:\n{existing}\n\n"
+                f"Bạn có muốn GHI ĐÈ file cũ không?\n"
+                f"(Yes = đè, No = đổi thư mục, Cancel = huỷ)",
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+            )
+            if ans == QMessageBox.Yes:
+                return True
+            if ans == QMessageBox.No:
+                # Mở lại browse_dir
+                self.browse_dir()
+                return False
+            return False  # Cancel
+        return True
+
     def run_make_prompts(self):
-        # Lấy MainWindow để in log
         main_win = self.window()
         if hasattr(main_win, "append_log"):
             main_win.append_log("Đang chuẩn bị dữ liệu gửi cho AI...", "#D4D4D4")
 
-        # Thu thập dữ liệu
+        # Validate SRT
+        srt_path = self.srt_input.text().strip()
+        if not srt_path:
+            QMessageBox.warning(self, "Thiếu", "Vui lòng chọn file SRT.")
+            return
+        if not os.path.isfile(srt_path):
+            QMessageBox.critical(self, "Lỗi",
+                                 f"File SRT không tồn tại:\n{srt_path}")
+            return
+
+        # Đè file warning
+        if not self._check_overwrite():
+            return
+
+        # Tính target_secs
+        target_secs = self._compute_target_secs()
+        if target_secs is None:
+            return
+
+        # Style mode
+        checked_style = self.style_mode_group.checkedButton()
+        style_mode_data = "in_prompt"
+        if checked_style:
+            text = checked_style.text()
+            for txt, data in [
+                ("(in_prompt)", "in_prompt"),
+                ("(lock_art)",  "lock_art"),
+                ("(lock_all)",  "lock_all"),
+            ]:
+                if txt in text:
+                    style_mode_data = data
+                    break
+
+        # Thu thập data
         data = {
-            "cfg": self.cfg,
-            "srt": self.srt_input.text(),
-            "title": self.title_input.text(),
-            "dir": self.dir_input.text(),
-            "profile": self.profile_combo.currentText(),
-            "char": self.char_input.text(),
-            "secs": self.spin_secs.value(),
-            "produce_mode": self.produce_group.checkedButton().text() if self.produce_group.checkedButton() else ""
+            "cfg":          self.cfg,
+            "srt":          srt_path,
+            "title":        self.title_input.text(),
+            "dir":          self.dir_input.text(),
+            "profile":      self.profile_combo.currentText(),
+            "char":         self.char_input.text(),
+            "secs":         target_secs,
+            "produce_mode": self.produce_group.checkedButton().text() if self.produce_group.checkedButton() else "",
+            "style_mode":   style_mode_data,
+            "provider":     self.cmb_provider.currentText(),
+            "model":        self.cmb_model.currentText(),
         }
 
-        # Khóa nút bấm
+        # Persist provider default để lần sau còn nhớ
+        self.cfg.set("providers.default_provider", data["provider"], auto_save=True)
+        self.cfg.set(f"providers.models.{data['provider']}", data["model"], auto_save=True)
+
         self.btn_create.setEnabled(False)
         self.btn_create.setText("⏳ ĐANG TẠO PROMPT...")
-
-        # Chạy Worker
         self.worker = PromptWorker(data)
         if hasattr(main_win, "append_log"):
             self.worker.log_signal.connect(main_win.append_log)
-
         self.worker.finished_signal.connect(self.on_prompt_finished)
         self.worker.start()
 
@@ -238,28 +448,3 @@ class PromptTab(QWidget):
             QMessageBox.information(self, "Thành công", "Tạo Prompt hoàn tất!")
         else:
             QMessageBox.critical(self, "Lỗi", f"Có lỗi xảy ra:\n{msg}")
-
-    def stub_open_prompts(self):
-        import os
-        import sys
-        import subprocess
-        
-        folder = self.dir_input.text().strip()
-        if not folder:
-            # Nếu chưa chọn thư mục, mặc định file lưu ở gốc dự án
-            folder = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-            
-        file_path = os.path.join(folder, "veo_prompts.txt")
-        
-        if os.path.exists(file_path):
-            try:
-                if os.name == 'nt':
-                    os.startfile(file_path)
-                elif sys.platform == 'darwin':
-                    subprocess.call(['open', file_path])
-                else:
-                    subprocess.call(['xdg-open', file_path])
-            except Exception as e:
-                QMessageBox.warning(self, "Lỗi", f"Không thể mở file: {e}")
-        else:
-            QMessageBox.information(self, "Không tìm thấy", f"Chưa có file {file_path}.\nVui lòng chạy TẠO PROMPT (AI) trước.")
