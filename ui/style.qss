@@ -1,0 +1,141 @@
+/* style.qss - Dựa trên Design System Streamline Logic */
+
+QMainWindow, QDialog {
+    background-color: #F8F9FA;
+}
+
+#Sidebar {
+    background-color: #FFFFFF;
+    border-right: 1px solid #DEE2E6;
+}
+
+#Sidebar QPushButton {
+    text-align: left;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #424656;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#Sidebar QPushButton:hover {
+    background-color: #F2F3FF;
+}
+
+#Sidebar QPushButton:checked {
+    background-color: #E6E7F4;
+    color: #0066FF;
+    font-weight: bold;
+    border-left: 4px solid #0066FF;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+#TopBar {
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #DEE2E6;
+}
+
+#ConsoleFrame {
+    background-color: #1E1E1E;
+    border-top: 1px solid #424656;
+}
+
+#ConsoleLog {
+    background-color: #1E1E1E;
+    color: #D4D4D4;
+    font-family: "Fira Sans", monospace;
+    font-size: 13px;
+    border: none;
+}
+
+/* --- Form Inputs (Phase 2) --- */
+QLineEdit, QComboBox, QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    border-radius: 4px;
+    padding: 6px 12px;
+    color: #191B24;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    min-height: 20px;
+}
+
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+    border: 1px solid #0066FF;
+    outline: none;
+}
+
+QRadioButton {
+    font-family: "Inter", sans-serif;
+    color: #424656;
+    spacing: 8px;
+}
+
+/* --- ScrollArea & CheckBox (Phase 3) --- */
+QScrollArea {
+    border: none;
+    background-color: transparent;
+}
+QScrollArea > QWidget > QWidget {
+    background-color: transparent;
+}
+QCheckBox {
+    font-family: "Inter", sans-serif;
+    color: #424656;
+    spacing: 8px;
+}
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #DEE2E6;
+    background-color: #FFFFFF;
+}
+QCheckBox::indicator:checked {
+    background-color: #0066FF;
+    border: 1px solid #0066FF;
+}
+
+/* --- Lists & Tables (Phase 4) --- */
+QListWidget, QTableWidget {
+    background-color: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    border-radius: 8px;
+    font-family: "Inter", sans-serif;
+    color: #191B24;
+}
+QHeaderView::section {
+    background-color: #F2F3FF;
+    color: #424656;
+    padding: 6px;
+    border: none;
+    border-bottom: 1px solid #DEE2E6;
+    font-weight: bold;
+}
+
+/* --- Settings & Profiles (Phase 5) --- */
+QTextEdit {
+    background-color: #1E1E1E;
+    color: #D4D4D4;
+    border: none;
+    font-family: "Consolas", monospace;
+    font-size: 13px;
+    padding: 8px;
+}
+QListWidget#ProfileList {
+    background-color: #F8F9FA;
+    border: none;
+    border-right: 1px solid #DEE2E6;
+}
+QListWidget#ProfileList::item {
+    padding: 10px;
+    border-bottom: 1px solid #E9ECEF;
+}
+QListWidget#ProfileList::item:selected {
+    background-color: #0066FF;
+    color: white;
+}

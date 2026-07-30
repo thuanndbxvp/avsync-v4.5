@@ -302,9 +302,50 @@ def _viz_filter(viz):
     return None, None
 
 
+def render_sleep_video(bg_path, audio_path, out_path, config=None, progress_cb=None):
+    """
+    Hàm lõi tạo Video Ngủ — được bóc tách để PySide6 QThread có thể gọi trực tiếp.
+
+    Args:
+        bg_path:      đường dẫn ảnh/clip nền, hoặc FOLDER nhiều ảnh/clip.
+        audio_path:   đường dẫn file audio dài.
+        out_path:     đường dẫn file MP4 đầu ra.
+        config:       dict cấu hình. Khóa hợp lệ:
+                      effect (rain/snow/fog/bokeh/none), intensity (nhe/vua/nang),
+                      fade (giây, mặc định 4.0), max_seconds (None = cả audio),
+                      encoder (auto/cpu), viz (none/bars/waves),
+                      ambient (path), ambient_volume (0-1, mặc định 0.25),
+                      item_sec (giây mỗi mục nếu bg là folder, mặc định 20).
+        progress_cb:  callback(text) để bắn log lên UI. None = print ra console.
+
+    Returns:
+        True nếu thành công. Raises SystemExit nếu lỗi nghiêm trọng.
+    """
+    cfg = config or {}
+    return make_sleep_video(
+        bg_path, audio_path, out_path,
+        effect=cfg.get("effect", "rain"),
+        intensity=cfg.get("intensity", "vua"),
+        fade=cfg.get("fade", 4.0),
+        max_seconds=cfg.get("max_seconds"),
+        encoder=cfg.get("encoder", "auto"),
+        viz=cfg.get("viz", "none"),
+        ambient=cfg.get("ambient"),
+        ambient_volume=cfg.get("ambient_volume", 0.25),
+        item_sec=cfg.get("item_sec", 20.0),
+        progress_cb=progress_cb,
+    )
+
+
 def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
                      max_seconds=None, encoder="auto", viz="none",
-                     ambient=None, ambient_volume=0.25, item_sec=20.0):
+                     ambient=None, ambient_volume=0.25, item_sec=20.0,
+                     progress_cb=None):
+    def log(msg):
+        if progress_cb:
+            progress_cb(msg)
+        # Ngược lại: in ra console như cũ (CLI path)
+
     if not ae.FFMPEG:
         raise SystemExit("Không tìm thấy ffmpeg.")
     if not (os.path.isfile(bg) or os.path.isdir(bg)):     # nhận cả FOLDER nhiều ảnh/clip
@@ -326,18 +367,18 @@ def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
         kind = tr("video loop")
     else:
         kind = tr("ảnh tĩnh")
-    print(tr(f"• Nền: {os.path.basename(bg)} ({kind}) | Hiệu ứng: {effect}/{intensity} | "
-             f"Encoder: {enc}"))
-    print(tr(f"• Audio: {os.path.basename(audio)} | Video dài: {adur:.0f}s "
-             f"({adur / 3600:.2f}h) | loop nền {LOOP_SEC:.0f}s"))
+    log(tr(f"• Nền: {os.path.basename(bg)} ({kind}) | Hiệu ứng: {effect}/{intensity} | "
+           f"Encoder: {enc}"))
+    log(tr(f"• Audio: {os.path.basename(audio)} | Video dài: {adur:.0f}s "
+           f"({adur / 3600:.2f}h) | loop nền {LOOP_SEC:.0f}s"))
 
     tmp = tempfile.mkdtemp(prefix="sleep_")
     try:
-        print(tr("• (1/2) Dựng đoạn nền loop + hiệu ứng..."))
+        log(tr("• (1/2) Dựng đoạn nền loop + hiệu ứng..."))
         if os.path.isdir(bg) and max_seconds and 0 < max_seconds <= 30:
             # XEM TRƯỚC với nền FOLDER: dựng vòng xoay RÚT GỌN (mỗi mục ~6s, tối đa ~20s)
             # cho ra kết quả trong <1 phút; render thật vẫn dựng vòng xoay đầy đủ.
-            print(tr("• Xem trước: rút gọn vòng xoay folder (mỗi mục ~6s) cho nhanh..."))
+            log(tr("• Xem trước: rút gọn vòng xoay folder (mỗi mục ~6s) cho nhanh..."))
             loop = _build_loopclip(bg, effect, intensity, tmp,
                                    min(float(item_sec), 6.0), max_total=20.0)
         else:
@@ -357,7 +398,7 @@ def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
         has_amb = bool(ambient and os.path.isfile(ambient))
         amb_in = (["-stream_loop", "-1", "-i", os.path.abspath(ambient)] if has_amb else [])
         if has_amb:
-            print(tr(f"• Âm thanh nền: {os.path.basename(ambient)} (âm lượng {ambient_volume})"))
+            log(tr(f"• Âm thanh nền: {os.path.basename(ambient)} (âm lượng {ambient_volume})"))
 
         def _mix_to_a(voice_lbl):
             """voice_lbl (nhãn nhánh tiếng chính) [+ ambient] -> afade -> [a]."""
@@ -369,7 +410,7 @@ def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
         vfilt, yoff = _viz_filter(viz)
         if vfilt:
             # CÓ visualizer -> render FULL theo audio (không loop-copy được) -> chậm hơn
-            print(tr("• (2/2) Render FULL + visualizer theo audio (lâu hơn vì vẽ theo nhạc)..."))
+            log(tr("• (2/2) Render FULL + visualizer theo audio (lâu hơn vì vẽ theo nhạc)..."))
             fc = (f"[1:a]asplit=2[av][ao];{vfilt};"
                   f"[0:v][viz]overlay=0:{yoff}:format=auto,format=yuv420p[v];"
                   f"{_mix_to_a('ao')}")
@@ -381,7 +422,7 @@ def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
                     "-t", f"{adur:.3f}", "-movflags", "+faststart", os.path.abspath(out)])
         elif has_amb:
             # KHÔNG visualizer nhưng CÓ ambient -> video COPY, nhưng phải trộn tiếng (filter)
-            print(tr("• (2/2) Lặp nền COPY + TRỘN âm thanh nền vào tiếng + fade..."))
+            log(tr("• (2/2) Lặp nền COPY + TRỘN âm thanh nền vào tiếng + fade..."))
             cmd = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error"]
                    + vin + ["-i", os.path.abspath(audio)]
                    + amb_in
@@ -390,19 +431,27 @@ def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
                       "-movflags", "+faststart", os.path.abspath(out)])
         else:
             # Không viz, không ambient -> lặp nền COPY cho hết audio (RẤT NHANH)
-            print(tr("• (2/2) Lặp nền cho hết audio + ghép tiếng + fade (video COPY -> nhanh)..."))
+            log(tr("• (2/2) Lặp nền cho hết audio + ghép tiếng + fade (video COPY -> nhanh)..."))
             cmd = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error"]
                    + vin + ["-i", os.path.abspath(audio),
                    "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-af", afade,
                    "-c:a", "aac", "-b:a", "192k", "-t", f"{adur:.3f}",
                    "-movflags", "+faststart", os.path.abspath(out)])
         ae.run(cmd, timeout=None)
-        print("\n" + tr(f"✅ XONG: {os.path.abspath(out)}"))
+        log("\n" + tr(f"✅ XONG: {os.path.abspath(out)}"))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+    return True
 
 
+# ----------------------------------------------------------------------------
+# CLI backward-compat (entry point used by app_legacy.py subprocess bridge)
+# ----------------------------------------------------------------------------
 def main():
+    return _legacy_main()
+
+
+def _legacy_main():
     ap = argparse.ArgumentParser(description="Tạo video ngủ dài: nền + hiệu ứng + audio")
     ap.add_argument("--bg", required=True, help="Ảnh (.jpg/.png) hoặc video nền (.mp4)")
     ap.add_argument("--audio", required=True, help="File audio dài (mp3/wav/m4a)")

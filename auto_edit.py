@@ -26,6 +26,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import types
 from concurrent.futures import ThreadPoolExecutor
 
 # Ép stdout/stderr sang UTF-8 để in được tiếng Việt trên console Windows (cp1252)
@@ -829,10 +830,448 @@ def concat_copy(paths, out_path, tmp):
     run([FFMPEG, "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", out_path])
 
 
+def render_video(srt_path, img_dir, out_path, cfg=None, progress_cb=None):
+    """
+    Hàm lõi render video — được bóc tách từ `main()` để PySide6 QThread có thể gọi trực tiếp.
+
+    Args:
+        srt_path:    đường dẫn file SRT đầu vào.
+        img_dir:     thư mục ảnh/clip đầu vào (ảnh đặt tên 01.png, 02.png...).
+        out_path:    đường dẫn file MP4 đầu ra.
+        cfg:         dict cấu hình (khóa = tùy chọn CLI). None = dùng defaults.
+        progress_cb: callback(text) để bắn log lên UI. None = print ra console.
+
+    Returns:
+        True nếu render thành công. Raises SystemExit nếu lỗi nghiêm trọng.
+    """
+    cfg = cfg or {}
+
+    # Tạo namespace `args` tương thích ngược với mọi `args.xxx` trong phần thân.
+    # Mặc định lấy theo argparse defaults; override từ cfg nếu truyền vào.
+    # >>> Cách này đảm bảo ZERO regression cho code main() cũ.
+    _defaults = {
+        "input_dir": "input", "voice": None, "image_mode": "auto", "scenes": None,
+        "seconds_per_image": None, "dry_run": False, "clip_fit": "auto",
+        "transition": "none", "xfade_duration": 0.5, "fps": None,
+        "no_kenburns": False, "no_subtitles": False, "karaoke_color": SUB_KARAOKE_COLOR,
+        "sub_font": None, "sub_mode": "word", "sub_outline_color": None,
+        "sub_size": SUB_SIZE, "keep_clip_audio": False, "clip_volume": 0.25,
+        "voice_volume": 1.0, "aspect": "16:9", "logo": None, "logo_pos": "br",
+        "logo_size": 96, "logo_opacity": 0.85, "logo_shape": "round",
+        "title_text": None, "title_sec": 4.0, "intro": None, "outro": None,
+        "sfx": None, "sfx_volume": 0.5, "color": "none", "vignette": False,
+        "grain": False, "bgm": None, "bgm_volume": 0.18, "no_duck": False,
+        "keep_temp": False, "max_scenes": None, "encoder": "auto", "jobs": None,
+    }
+    # Gộp defaults + cfg (cfg override defaults) thành 1 dict,
+    # sau đó truyền đúng 1 lần. Tránh "got multiple values for keyword argument".
+    _merged = dict(_defaults)
+    _merged.update({k: v for k, v in cfg.items() if k in _defaults})
+    args = types.SimpleNamespace(
+        srt=srt_path, images=img_dir, out=out_path, **_merged,
+    )
+
+    def log(msg):
+        if progress_cb:
+            progress_cb(msg)
+
+    if not FFMPEG:
+        raise SystemExit("Không tìm thấy ffmpeg. Hãy cài rồi thử lại.")
+
+    if not os.path.isfile(args.srt):
+        raise SystemExit(f"Không thấy file SRT: {args.srt}")
+
+    # Khung hình: 9:16 dọc -> đổi kích thước TOÀN CỤC (mọi filter/Ken Burns/phụ đề ASS
+    # đều đọc WIDTH/HEIGHT lúc chạy nên tự theo)
+    if args.aspect == "9:16":
+        globals()["WIDTH"], globals()["HEIGHT"] = 1080, 1920
+        log(tr("• Khung hình: 9:16 DỌC (1080x1920 — Shorts/TikTok/Reels)"))
+
+    segs = parse_srt(args.srt)
+    if not segs:
+        raise SystemExit("File SRT không có đoạn nào hợp lệ.")
+    media = collect_media(args.images)
+    if not media:
+        raise SystemExit(f"Thư mục {args.images} chưa có ảnh/video nào.")
+    voice = find_voice(args.input_dir, args.voice)
+
+    n_seg, n_img = len(segs), len(media)
+
+    # Tổng thời lượng video = max(cuối SRT, độ dài voiceover) -> luôn phủ hết tiếng
+    audio_dur = probe_duration(voice) if voice else None
+    total_end = segs[-1]["end"]
+    if audio_dur:
+        total_end = max(total_end, audio_dur)
+
+    # ---- Quyết định cách rải ảnh (ĐỘC LẬP với số đoạn phụ đề) ----
+    spi = args.seconds_per_image
+    mode = args.image_mode
+    if mode == "auto" and not spi and not args.scenes:
+        mode = "srt" if n_img == n_seg else "spread"
+
+    if args.scenes:
+        # Ghép theo bảng cảnh: ảnh thứ i khóa vào đúng [start-end] của cảnh i
+        import csv
+        scenes = []
+        with open(args.scenes, encoding="utf-8-sig") as f:
+            for i, row in enumerate(csv.DictReader(f)):
+                st = srt_time_to_sec(row["start"])
+                en = srt_time_to_sec(row["end"])
+                scenes.append((media[min(i, n_img - 1)], max(0.4, en - st)))
+        mode_label = f"theo bảng cảnh ({len(scenes)} cảnh, khóa timestamp SRT)"
+    elif spi:
+        n_scenes = max(1, round(total_end / spi))
+        scenes = []
+        for i in range(n_scenes):
+            d = spi if i < n_scenes - 1 else max(0.4, total_end - spi * (n_scenes - 1))
+            scenes.append((media[i % n_img], d))          # lặp vòng ảnh nếu thiếu
+        mode_label = f"mỗi ảnh ~{spi:g}s (lặp vòng {n_img} ảnh)"
+    elif mode == "srt":
+        boundaries = [0.0] + [segs[i]["start"] for i in range(1, n_seg)] + [total_end]
+        scenes = [(media[min(i, n_img - 1)], max(0.4, boundaries[i + 1] - boundaries[i]))
+                  for i in range(n_seg)]
+        mode_label = "1 ảnh / 1 đoạn phụ đề"
+    else:  # spread
+        per = total_end / n_img
+        scenes = [(media[i], per) for i in range(n_img)]
+        mode_label = f"rải đều {n_img} ảnh"
+
+    # ---- XEM TRƯỚC: chỉ giữ N cảnh đầu cho render nhanh ----
+    if args.max_scenes and args.max_scenes > 0 and len(scenes) > args.max_scenes:
+        scenes = scenes[:args.max_scenes]
+        total_end = sum(d for _, d in scenes)
+        mode_label += f" | XEM TRƯỚC {len(scenes)} cảnh đầu"
+
+    # ---- Chọn FPS: khớp clip Veo để HẾT RUNG ----
+    # Clip Veo thường 24fps. Ép lên 30fps phải nhân bản frame KHÔNG đều -> giật (judder).
+    # Có clip video -> dùng FPS = fps clip (24). Toàn ảnh tĩnh -> 30 (Ken Burns mượt hơn).
+    has_video = any(src.lower().endswith(VIDEO_EXTS) for src, _ in scenes)
+    if args.fps:
+        fps_use, fps_why = args.fps, "theo --fps"
+    elif has_video:
+        vsrc = next(src for src, _ in scenes if src.lower().endswith(VIDEO_EXTS))
+        f = probe_fps(vsrc)
+        fps_use = int(round(f)) if f else 24
+        fps_why = "khớp clip video -> hết rung"
+    else:
+        fps_use, fps_why = 30, "toàn ảnh tĩnh -> Ken Burns mượt"
+    globals()["FPS"] = max(1, fps_use)
+    log(f"• FPS: {FPS} ({tr(fps_why)})")
+
+    # ---- Encoder (ưu tiên GPU) + số luồng render song song ----
+    enc = detect_encoder(args.encoder)[0]
+    cpu = os.cpu_count() or 4
+    auto_jobs = max(1, min(4, cpu // 2))
+    if enc != "libx264":
+        auto_jobs = min(auto_jobs, 3)          # encoder GPU: cap session đồng thời cho an toàn
+    jobs = args.jobs if (args.jobs and args.jobs > 0) else auto_jobs
+    log(tr(f"• Encoder: {enc} | Render song song: {jobs} cảnh/lúc"))
+
+    voice_name = os.path.basename(voice) if voice else tr("KHÔNG")
+    dur_txt = f"{audio_dur:.1f}s" if audio_dur else tr("theo SRT")
+    log(tr(f"• Phụ đề: {n_seg} đoạn (tự khớp voiceover theo timestamp) | "
+           f"Ảnh: {n_img} | Voice: {voice_name} ({dur_txt})"))
+    log(tr(f"• Rải ảnh: {tr(mode_label)} → {len(scenes)} cảnh | tổng video {total_end:.1f}s"))
+
+    if args.dry_run:
+        for i, (src, d) in enumerate(scenes):
+            log(tr(f"   cảnh {i+1:>3}: {os.path.basename(src):<22} {d:6.2f}s"))
+        log(tr(f"   → TỔNG {sum(d for _, d in scenes):.1f}s "
+               f"(khớp voice/SRT {total_end:.1f}s)"))
+        return True
+
+    tmp = tempfile.mkdtemp(prefix="autoedit_")
+    try:
+        # 0) Clip Veo HỎNG (1 frame / không đọc được độ dài) -> video CO lệch audio
+        # (gotcha #4). Phát hiện TRƯỚC render: trích frame đầu làm ẢNH TĨNH thay thế.
+        for i, (src, d) in enumerate(scenes):
+            if src.lower().endswith(VIDEO_EXTS):
+                dur = probe_duration(src)
+                if not dur or dur < 0.2:
+                    png = os.path.join(tmp, f"fix_{i:04d}.png")
+                    try:
+                        run([FFMPEG, "-y", "-hide_banner", "-loglevel", "error", "-i", src,
+                             "-frames:v", "1", png], timeout=120)
+                        if os.path.isfile(png):
+                            scenes[i] = (png, d)
+                            log(tr(f"  ⚠️ Clip hỏng (1 frame): {os.path.basename(src)} "
+                                   f"— đã dùng như ẢNH TĨNH (Ken Burns) thay thế"))
+                    except SystemExit:
+                        pass
+
+        # 1) Render từng cảnh (ảnh nằm giữa 2 ảnh -> render dài thêm để crossfade)
+        is_img = [not s.lower().endswith(VIDEO_EXTS) for s, _ in scenes]
+        use_xf = (args.transition != "none")
+        D = max(0.15, min(args.xfade_duration, 1.5)) if use_xf else 0.0
+
+        n_sc = len(scenes)
+        clips = [os.path.join(tmp, f"clip_{i:04d}.mp4") for i in range(n_sc)]
+        rlen = []
+        jobtasks = []
+        for i, (src, dur) in enumerate(scenes):
+            extra = D if (use_xf and is_img[i] and i + 1 < n_sc and is_img[i + 1]) else 0.0
+            rlen.append(dur + extra)
+            jobtasks.append((i, src, dur + extra))
+
+        done = [0]
+        plock = threading.Lock()
+
+        def _render_scene(t):
+            i, src, d = t
+            try:
+                build_clip(src, d, clips[i], kenburns=not args.no_kenburns, index=i,
+                           clip_fit=args.clip_fit, edge_fade=not use_xf,
+                           clip_fade=(args.transition != "none"))
+            except SystemExit as e:
+                raise SystemExit(f"Cảnh {i+1} ({os.path.basename(src)}): {e}")
+            with plock:
+                done[0] += 1
+                log(f"  [{done[0]}/{n_sc}] {os.path.basename(src)}  ({d:.2f}s)")
+
+        # Render SONG SONG nhiều cảnh -> tận dụng đa nhân (jobs=1 thì tuần tự như cũ)
+        if jobs <= 1:
+            for t in jobtasks:
+                _render_scene(t)
+        else:
+            with ThreadPoolExecutor(max_workers=jobs) as ex:
+                for _ in ex.map(_render_scene, jobtasks):
+                    pass
+
+        # 2) Ghép các cảnh
+        silent = os.path.join(tmp, "video_silent.mp4")
+        if not use_xf:
+            listfile = os.path.join(tmp, "concat.txt")
+            with open(listfile, "w", encoding="utf-8") as f:
+                for c in clips:
+                    f.write(f"file '{c.replace(chr(92), '/')}'\n")
+            run([FFMPEG, "-y", "-f", "concat", "-safe", "0", "-i", listfile,
+                 "-c", "copy", silent])
+        else:
+            log(tr("• Áp crossfade cho các ảnh tĩnh..."))
+            segments, i, n = [], 0, len(clips)
+            while i < n:
+                if is_img[i]:
+                    j = i
+                    while j < n and is_img[j]:
+                        j += 1
+                    if j - i == 1:
+                        segments.append(clips[i])
+                    else:
+                        seg = os.path.join(tmp, f"seg_{i:04d}.mp4")
+                        xfade_group(clips[i:j], rlen[i:j], D, seg, args.transition)
+                        segments.append(seg)
+                    i = j
+                else:
+                    segments.append(clips[i])
+                    i += 1
+            concat_copy(segments, silent, tmp)
+
+        # 2b) Track ÂM THANH GỐC của clip (nếu user chọn giữ) — khớp đúng timeline cảnh
+        clipsnd = None
+        if args.keep_clip_audio:
+            log(tr("• Tách âm thanh gốc của clip (khớp từng cảnh)..."))
+            clipsnd = build_clip_audio_track(scenes, tmp, args.clip_fit)
+            if not clipsnd:
+                log(tr("  (không clip nào có âm thanh — bỏ qua)"))
+
+        # 2c) Track SFX chuyển cảnh (whoosh ở đầu mỗi cảnh, trừ cảnh 1)
+        sfxsnd = None
+        if args.sfx and os.path.isfile(args.sfx) and len(scenes) > 1:
+            log(tr("• Dựng track SFX chuyển cảnh..."))
+            sfxsnd = build_sfx_track(scenes, tmp, os.path.abspath(args.sfx),
+                                     args.sfx_volume)
+
+        # 3) Pass cuối: màu phim + vignette + hạt phim + phụ đề + voice + NHẠC NỀN
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        out_abs = os.path.abspath(args.out)
+        # NHẠC NỀN: file đơn hoặc FOLDER nhiều bài (tự nối thành playlist, tránh lặp 1 bài)
+        bgm = None
+        if args.bgm and os.path.isdir(args.bgm):
+            bgm = build_bgm_playlist(args.bgm, tmp)
+        elif args.bgm and os.path.isfile(args.bgm):
+            bgm = os.path.abspath(args.bgm)
+        vid_dur = probe_duration(silent) or total_end
+
+        # Chuỗi filter VIDEO (#3): màu -> vignette -> hạt phim -> phụ đề
+        # (phụ đề để CUỐI chuỗi -> chữ vẽ trên cùng, không bị ám màu/tối góc che).
+        vchain = []
+        cg = color_grade_filter(args.color)
+        if cg:
+            vchain.append(cg)
+        if args.vignette:
+            vchain.append("vignette=angle=PI/5")
+        if args.grain:
+            vchain.append("noise=alls=6:allf=t")
+        cwd = None
+        if not args.no_subtitles:
+            # ASS (tên ascii, trong temp) PlayResX/Y = kích thước video -> phụ đề đúng pixel thật.
+            subs = os.path.join(tmp, "subs.ass")
+            _write_ass(args.srt, subs, WIDTH, HEIGHT, args.karaoke_color,
+                       font=args.sub_font, mode=args.sub_mode,
+                       outline_color=args.sub_outline_color, size=args.sub_size)
+            cwd = tmp                       # chạy ffmpeg trong temp -> path phụ đề tương đối
+            vchain.append("subtitles=subs.ass")
+        if args.title_text and args.title_text.strip():
+            # TIÊU ĐỀ MỞ VIDEO: ASS riêng (chữ to giữa 1/3 trên, fade), vẽ TRÊN mọi lớp màu
+            tass = os.path.join(tmp, "title.ass")
+            _write_title_ass(tass, WIDTH, HEIGHT, args.title_text.strip(),
+                             seconds=args.title_sec, font=args.sub_font)
+            cwd = tmp
+            vchain.append("subtitles=title.ass")
+
+        logo = (os.path.abspath(args.logo)
+                if (args.logo and os.path.isfile(args.logo)) else None)
+        logo_ready = False              # logo đã scale + tạo hình sẵn (PNG tạm)?
+        if logo and args.logo_shape != "square":
+            # KIỂU LOGO: round = bo góc mềm (bán kính ~20% chiều cao) | circle = tròn
+            # avatar (cắt vuông giữa + bo alpha hình tròn). Làm 1 lần ra PNG tạm; logo
+            # nền trong suốt sẵn thì phần alpha=0 không đổi. Lỗi -> dùng logo gốc.
+            _rnd = os.path.join(tmp, "logo_shape.png")
+            _size = max(24, args.logo_size)
+            if args.logo_shape == "circle":
+                _vf = (f"scale=-1:{_size},crop='min(iw,ih)':'min(iw,ih)',format=rgba,"
+                       "geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':"
+                       "a='alpha(X,Y)*clip(W/2-hypot(X-(W-1)/2,Y-(H-1)/2)+0.5,0,1)'")
+            else:
+                _vf = (f"scale=-1:{_size},format=rgba,"
+                       "geq=r='r(X,Y)':g='g(X,Y)':b='b(X,Y)':"
+                       "a='alpha(X,Y)*clip(H/5-hypot(max(max(H/5-X,X-W+1+H/5),0),"
+                       "max(max(H/5-Y,Y-H+1+H/5),0))+0.5,0,1)'")
+            try:
+                run([FFMPEG, "-y", "-hide_banner", "-loglevel", "error", "-i", logo,
+                     "-vf", _vf, "-frames:v", "1", _rnd], timeout=120)
+                if os.path.isfile(_rnd):
+                    logo, logo_ready = _rnd, True
+            except SystemExit:
+                pass
+        cmd = [FFMPEG, "-y", "-i", silent]
+        aidx, nin = {}, 1                              # chỉ số input động
+        if voice:
+            cmd += ["-i", os.path.abspath(voice)]
+            aidx["voice"] = nin; nin += 1
+        if bgm:
+            cmd += ["-stream_loop", "-1", "-i", bgm]   # lặp nhạc cho đủ dài video
+            aidx["bgm"] = nin; nin += 1
+        if clipsnd:
+            cmd += ["-i", clipsnd]                     # tiếng gốc của clip (đã khớp cảnh)
+            aidx["snd"] = nin; nin += 1
+        if sfxsnd:
+            cmd += ["-i", sfxsnd]                      # SFX chuyển cảnh (đã áp âm lượng)
+            aidx["sfx"] = nin; nin += 1
+        lidx = None
+        if logo:
+            cmd += ["-i", logo]
+            lidx = nin; nin += 1
+
+        if bgm or clipsnd or sfxsnd or logo:
+            # Nguồn phụ (nhạc/tiếng clip/sfx/logo) -> gộp vào -filter_complex
+            fc = []
+            vsrc = "[0:v]"
+            if vchain:
+                fc.append(f"[0:v]{','.join(vchain)}[vc]")
+                vsrc = "[vc]"
+            if logo:                                    # logo/watermark đè TRÊN cùng
+                op = max(0.0, min(1.0, args.logo_opacity))
+                pos = {"tl": "24:24", "tr": "W-w-24:24", "bl": "24:H-h-24",
+                       "br": "W-w-24:H-h-24"}[args.logo_pos]
+                pre = "" if logo_ready else f"scale=-1:{max(24, args.logo_size)},"
+                fc.append(f"[{lidx}:v]{pre}format=rgba,"
+                          f"colorchannelmixer=aa={op:.3f}[lg]")
+                fc.append(f"{vsrc}[lg]overlay={pos}[v]")
+                vmap = "[v]"
+            elif vchain:
+                vmap = "[vc]"
+            else:
+                vmap = "0:v:0"
+            terms = []                                 # các nhánh audio đưa vào amix
+            if bgm:
+                bvol = max(0.0, min(2.0, args.bgm_volume))
+                fo = max(0.0, vid_dur - 2.0)           # nhạc fade nhỏ 2s cuối
+                fc.append(f"[{aidx['bgm']}:a]volume={bvol:.3f},"
+                          f"afade=t=out:st={fo:.2f}:d=2,atrim=0:{vid_dur:.3f}[bgm]")
+            if clipsnd:
+                cvol = max(0.0, min(2.0, args.clip_volume))
+                fc.append(f"[{aidx['snd']}:a]volume={cvol:.3f}[csnd]")
+                terms.append("[csnd]")
+            if sfxsnd:
+                terms.append(f"[{aidx['sfx']}:a]")
+            if voice:
+                # Âm lượng VOICE (mặc định 1.0 = như cũ, chỉ chèn filter khi user đổi)
+                vv = max(0.0, min(2.0, args.voice_volume))
+                va = f"[{aidx['voice']}:a]"
+                if abs(vv - 1.0) > 0.001:
+                    fc.append(f"{va}volume={vv:.3f}[vvol]")
+                    va = "[vvol]"
+                if bgm and not args.no_duck:
+                    # ducking: nhạc TỰ NHỎ lại khi có lời (voice làm sidechain)
+                    fc.append(f"{va}asplit=2[vmix][vsc]")
+                    fc.append("[bgm][vsc]sidechaincompress=threshold=0.05:ratio=8:"
+                              "attack=15:release=300[bgd]")
+                    terms += ["[bgd]", "[vmix]"]
+                else:
+                    if bgm:
+                        terms.append("[bgm]")
+                    terms.append(va)
+            elif bgm:
+                terms.append("[bgm]")
+            if len(terms) == 1:
+                fc.append(f"{terms[0]}anull[aout]")
+            elif terms:
+                fc.append(f"{''.join(terms)}amix=inputs={len(terms)}:normalize=0[aout]")
+            amaps = (["-map", "[aout]", "-c:a", "aac", "-b:a", "192k"] if terms else [])
+            cmd += (["-filter_complex", ";".join(fc), "-map", vmap] + amaps
+                    + enc_args() + ["-pix_fmt", "yuv420p",
+                    "-t", f"{vid_dur:.3f}", out_abs])
+            log(tr("• Đang render bản cuối (màu + phụ đề + voice + nhạc nền)..."))
+        else:
+            # Không nhạc nền -> dùng -vf cho video như cũ
+            if vchain:
+                cmd += ["-vf", ",".join(vchain)]
+            cmd += enc_args() + ["-pix_fmt", "yuv420p"]
+            if voice:
+                cmd += ["-c:a", "aac", "-b:a", "192k", "-map", "0:v:0", "-map", "1:a:0",
+                        "-shortest"]
+                vv = max(0.0, min(2.0, args.voice_volume))
+                if abs(vv - 1.0) > 0.001:
+                    cmd += ["-af", f"volume={vv:.3f}"]
+            else:
+                cmd += ["-map", "0:v:0"]
+            cmd += [out_abs]
+            log(tr("• Đang render bản cuối (phụ đề + voice)..."))
+
+        run(cmd, cwd=cwd)
+
+        # 4) Ghép INTRO/OUTRO kênh (nếu có) — concat copy, không re-encode video chính
+        if ((args.intro and os.path.isfile(args.intro))
+                or (args.outro and os.path.isfile(args.outro))):
+            log(tr("• Ghép intro/outro vào video..."))
+            _attach_intro_outro(out_abs, args.intro, args.outro, tmp)
+
+        log("\n" + tr(f"✅ XONG: {out_abs}"))
+        if audio_dur and segs[-1]['end'] < audio_dur - 0.5:
+            log(tr(f"  (Voice dài {audio_dur:.1f}s > SRT {segs[-1]['end']:.1f}s — "
+                   "ảnh cuối đã được kéo dài để phủ hết tiếng.)"))
+    finally:
+        if args.keep_temp:
+            log(tr(f"• Temp giữ lại tại: {tmp}"))
+        else:
+            shutil.rmtree(tmp, ignore_errors=True)
+    return True
+
+
 # ----------------------------------------------------------------------------
-# Main
+# Main (CLI) — Backward-compatible entry-point, delegates to render_video()
 # ----------------------------------------------------------------------------
 def main():
+    """
+    CLI entry point — backwards compatible. Toàn bộ logic đã được bóc tách vào
+    `render_video(srt_path, img_dir, out_path, cfg, progress_cb)` ở phía trên.
+    Hàm này chỉ còn việc dựng argparse → truyền cfg → gọi `render_video`.
+    """
+    return _legacy_main()
+
+
+def _legacy_main():
     ap = argparse.ArgumentParser(description="Auto ghép ảnh theo SRT + voice -> MP4")
     ap.add_argument("--images", default="input/images")
     ap.add_argument("--srt", default="input/subtitle.srt")

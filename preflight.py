@@ -27,9 +27,19 @@ import tempfile
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 HERE = os.path.dirname(os.path.abspath(__file__))
 os.chdir(HERE)
-FILES = ["app.py", "auto_edit.py", "sleep_video.py", "ai_prompts.py",
-         "build_scenes.py", "i18n.py", "license_client.py", "config.py"]
+FILES = ["app_legacy.py", "app.py", "auto_edit.py", "sleep_video.py",
+         "ai_prompts.py", "build_scenes.py", "i18n.py", "license_client.py", "config.py"]
 FAILS, WARNS = [], []
+
+
+def _compile_only(rel_path):
+    """Chỉ py_compile, KHÔNG import — dùng cho stub PySide6 Phase 1
+    (stub không có default_config nên không thể import làm smoke test)."""
+    try:
+        py_compile.compile(rel_path, doraise=True)
+        return True, ""
+    except Exception as e:
+        return False, str(e)[:120]
 
 
 def check(name, ok, detail=""):
@@ -49,11 +59,8 @@ check("config.LICENSE_ENABLED = True", bool(getattr(config, "LICENSE_ENABLED", F
 # ---------- 1) Cú pháp ----------
 print("1) Cú pháp:")
 for f in FILES:
-    try:
-        py_compile.compile(f, doraise=True)
-        check(f, True)
-    except Exception as e:
-        check(f, False, str(e)[:120])
+    ok, detail = _compile_only(f)
+    check(f, ok, detail)
 
 # ---------- 2) Trùng tên hàm/method ----------
 print("2) Hàm/method trùng tên:")
@@ -75,12 +82,12 @@ for f in FILES:
 
 # ---------- 3) Persistence: key ghi vào cfg phải có trong default_config ----------
 print("3) Persistence (key cfg phải khai trong default_config):")
-src = open("app.py", encoding="utf-8").read()
-import app  # noqa  (sau khi compile OK)
-defaults = set(app.default_config().keys())
+src = open("app_legacy.py", encoding="utf-8").read()
+import app_legacy as app_legacy_module  # noqa  (Phase 1+: app.py mới là stub PySide6, không có default_config)
+defaults = set(app_legacy_module.default_config().keys())
 written = set(re.findall(r"""(?:self\.)?cfg\[\s*["']([^"']+)["']\s*\]\s*=""", src))
 missing = sorted(written - defaults)
-check("app.py", not missing,
+check("app_legacy.py", not missing,
       f"key GHI nhưng THIẾU trong default_config (sẽ mất khi mở lại): {missing}")
 
 # ---------- 4) GUI smoke headless trên CONFIG TẠM ----------
@@ -91,14 +98,14 @@ try:
     tmp_cfg = os.path.join(tmpdir, "config.local.json")
     if os.path.isfile(real_cfg):
         shutil.copy(real_cfg, tmp_cfg)
-    app._config_path = lambda: tmp_cfg          # mọi save trong test chỉ chạm bản TẠM
+    app_legacy_module._config_path = lambda: tmp_cfg          # mọi save trong test chỉ chạm bản TẠM
 
     import re as _re
     import tkinter as tk
     VN = _re.compile(r"[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợ"
                      r"ùúủũụưứừửữựỳýỷỹỵđ]", _re.IGNORECASE)
     r = tk.Tk()
-    a = app.App(r)
+    a = app_legacy_module.App(r)
 
     def dump():
         out = []
@@ -121,7 +128,7 @@ try:
     check("đổi lại VI", any("Tạo Prompt" in t for t in dump()))
     a.sub_font.set("PreflightTestFont"); a._save_subopts()
     r.destroy()
-    cfg2 = app.load_config.__wrapped__() if hasattr(app.load_config, "__wrapped__") else None
+    cfg2 = app_legacy_module.load_config.__wrapped__() if hasattr(app_legacy_module.load_config, "__wrapped__") else None
     saved = json.load(open(tmp_cfg, encoding="utf-8-sig"))
     check("round-trip cấu hình (save→load)",
           saved.get("sub_font") == "PreflightTestFont"
@@ -140,7 +147,7 @@ i18n.set_lang("en")
 VNchr = re.compile(r"[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]",
                    re.IGNORECASE)
 untranslated = []
-for f in ("app.py", "auto_edit.py", "sleep_video.py"):
+for f in ("app_legacy.py", "auto_edit.py", "sleep_video.py"):
     tree = ast.parse(open(f, encoding="utf-8").read())
     for node in ast.walk(tree):
         if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
