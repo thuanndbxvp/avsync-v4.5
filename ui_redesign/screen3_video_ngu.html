@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PeiPei Auto Edit Video - Video ngủ</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Sans:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#a33200",
+                        "on-secondary-fixed-variant": "#3b4951",
+                        "on-primary-fixed": "#001849",
+                        "surface-container-low": "#f2f3ff",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#eff0fd",
+                        "surface": "#faf8ff",
+                        "surface-container-high": "#e6e7f4",
+                        "inverse-primary": "#b3c5ff",
+                        "outline": "#727687",
+                        "secondary-fixed": "#d6e5ef",
+                        "on-surface-variant": "#424656",
+                        "primary": "#0050cb",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#bac9d3",
+                        "on-background": "#191b24",
+                        "tertiary-container": "#cc4204",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#fff6f4",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#832600",
+                        "on-surface": "#191b24",
+                        "surface-container": "#ecedfa",
+                        "surface-container-highest": "#e1e2ee",
+                        "background": "#faf8ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed": "#ffdbd0",
+                        "on-tertiary-fixed": "#390c00",
+                        "inverse-surface": "#2e303a",
+                        "primary-container": "#0066ff",
+                        "secondary-container": "#d3e2ed",
+                        "on-primary-fixed-variant": "#003fa4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#f8f7ff",
+                        "primary-fixed": "#dae1ff",
+                        "tertiary-fixed-dim": "#ffb59d",
+                        "surface-bright": "#faf8ff",
+                        "secondary": "#526069",
+                        "on-secondary-container": "#56656e",
+                        "outline-variant": "#c2c6d8",
+                        "surface-dim": "#d8d9e6",
+                        "surface-variant": "#e1e2ee",
+                        "on-secondary-fixed": "#0f1d25",
+                        "surface-tint": "#0054d6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack_gap_sm": "0.5rem",
+                        "sidebar_width": "260px",
+                        "gutter": "1.5rem",
+                        "stack_gap_md": "1rem",
+                        "console_height": "200px",
+                        "container_padding": "2rem"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-base": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "code-log": ["Fira Sans"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-base": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "code-log": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "display-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8F9FA; color: #191b24; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(222, 226, 230, 0.5); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden antialiased">
+<!-- Top Navigation Bar -->
+<header class="bg-surface dark:bg-surface-dim h-16 border-b border-outline-variant shadow-sm flex justify-between items-center px-gutter w-full z-20 sticky top-0 shrink-0">
+<div class="flex items-center gap-4">
+<h1 class="font-display-lg text-display-lg font-bold text-primary dark:text-primary-fixed">PeiPei Auto Edit Video</h1>
+<span class="font-label-caps text-label-caps text-on-surface-variant bg-surface-container-high px-2 py-1 rounded">v1.0.4</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Phiên bản 1.2.7</span>
+<span class="font-body-sm text-body-sm text-primary font-bold">Hỗ trợ Zalo : 0827298265</span>
+<button class="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar Navigation -->
+<nav class="bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant w-sidebar_width h-full flex flex-col py-stack_gap_md px-4 shrink-0 z-10 overflow-y-auto">
+<div class="mb-8 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-lg shadow-sm">
+                        WS
+                    </div>
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Workspace</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Automation Pro</p>
+</div>
+</div>
+</div>
+<ul class="flex flex-col gap-2">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all font-body-base text-body-base scale-95 active:scale-90 cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span>Tạo Prompt</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all font-body-base text-body-base scale-95 active:scale-90 cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="movie_filter">movie_filter</span>
+<span>Render Video</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary-container text-on-secondary-container font-semibold transition-all font-body-base text-body-base scale-95 active:scale-90 cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="bedtime">bedtime</span>
+<span>Video ngủ</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all font-body-base text-body-base scale-95 active:scale-90 cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="queue_play_next">queue_play_next</span>
+<span>Hàng đợi</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-high transition-all font-body-base text-body-base scale-95 active:scale-90 cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Cài đặt</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 bg-surface flex flex-col min-w-0 relative h-[calc(100vh-64px-200px)]">
+<div class="flex-1 overflow-y-auto p-container_padding">
+<div class="max-w-5xl mx-auto space-y-stack_gap_md">
+<!-- Panel 1: Khu vực Đầu vào File -->
+<div class="glass-card rounded-xl p-6">
+<div class="border-b border-outline-variant/30 pb-4 mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="folder_open">folder_open</span>
+                                Khu vực Đầu vào File
+                            </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Video ngủ dài (clip/ảnh nền + audio dài —&gt; 3-4 tiếng)</p>
+</div>
+<div class="space-y-4">
+<!-- NỀN -->
+<div class="flex items-center gap-4">
+<label class="w-40 font-body-base text-body-base font-semibold text-on-surface shrink-0 flex items-center gap-2">
+<span class="material-symbols-outlined text-xl" data-icon="image">image</span> NỀN (clip / ảnh):
+                                </label>
+<div class="flex-1 flex gap-2">
+<input class="flex-1 rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white" readonly="" type="text" value="D:\auto-edit-video-main\input\backgrounds"/>
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-4 py-2 rounded-md font-body-sm font-semibold transition-colors border border-outline-variant shadow-sm">Chọn...</button>
+</div>
+</div>
+<!-- AUDIO -->
+<div class="flex items-center gap-4">
+<label class="w-40 font-body-base text-body-base font-semibold text-on-surface shrink-0 flex items-center gap-2">
+<span class="material-symbols-outlined text-xl" data-icon="audio_file">audio_file</span> AUDIO dài (kịch bản):
+                                </label>
+<div class="flex-1 flex gap-2">
+<input class="flex-1 rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white" readonly="" type="text" value="D:\auto-edit-video-main\input\scripts"/>
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-4 py-2 rounded-md font-body-sm font-semibold transition-colors border border-outline-variant shadow-sm">Chọn...</button>
+</div>
+</div>
+<!-- Âm thanh NỀN -->
+<div class="flex items-center gap-4">
+<label class="w-40 font-body-base text-body-base font-semibold text-on-surface shrink-0 flex items-center gap-2">
+<span class="material-symbols-outlined text-xl" data-icon="music_note">music_note</span> Âm thanh NỀN:
+                                </label>
+<div class="flex-1 flex gap-2">
+<input class="flex-1 rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white text-on-surface-variant italic" placeholder="Chọn file âm thanh nền (tùy chọn)" type="text"/>
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-4 py-2 rounded-md font-body-sm font-semibold transition-colors border border-outline-variant shadow-sm">Chọn...</button>
+</div>
+</div>
+<!-- Xuất ra MP4 -->
+<div class="flex items-center gap-4 mt-6 pt-6 border-t border-outline-variant/30">
+<label class="w-40 font-body-base text-body-base font-semibold text-on-surface shrink-0 flex items-center gap-2">
+<span class="material-symbols-outlined text-xl text-primary" data-icon="output">output</span> Xuất ra MP4:
+                                </label>
+<div class="flex-1 flex gap-2">
+<input class="flex-1 rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white font-mono text-primary-fixed-variant" readonly="" type="text" value="D:\auto-edit-video-main\output\sleep.mp4"/>
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-4 py-2 rounded-md font-body-sm font-semibold transition-colors border border-outline-variant shadow-sm">Chọn...</button>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant italic mt-4 bg-surface-container-low p-3 rounded-lg border border-outline-variant/20">
+                                Nền = 1 FILE (clip ngắn tự LOOP LIỀN MẠCH — render vài phút) hoặc 1 FOLDER nhiều ảnh/clip (nút 📁 Folder — tự XOAY VÒNG + crossfade theo tên file, dựng đoạn loop lâu hơn chút).
+                            </p>
+</div>
+</div>
+<!-- Panel 2: Tùy chọn Cảnh & Hiệu ứng -->
+<div class="glass-card rounded-xl p-6">
+<div class="border-b border-outline-variant/30 pb-4 mb-6">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container" data-icon="tune">tune</span>
+                                Tùy chọn Cảnh &amp; Hiệu ứng
+                            </h3>
+</div>
+<div class="space-y-6">
+<!-- Row 1 -->
+<div class="flex flex-wrap gap-6 items-end bg-surface-container-low p-4 rounded-lg border border-outline-variant/20">
+<div class="flex flex-col gap-1 flex-1 min-w-[200px]">
+<label class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="auto_awesome">auto_awesome</span> Hiệu ứng (cho nền ẢNH tĩnh)
+                                    </label>
+<select class="rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white">
+<option>none</option>
+<option selected="">vừa</option>
+</select>
+</div>
+<div class="flex flex-col gap-1 w-32">
+<label class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="volume_down">volume_down</span> Fade tiếng (s)
+                                    </label>
+<input class="rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white text-center" type="number" value="4"/>
+</div>
+<div class="flex flex-col gap-1 flex-1 min-w-[150px]">
+<label class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="equalizer">equalizer</span> Visualizer
+                                    </label>
+<select class="rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white">
+<option selected="">none</option>
+</select>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="flex flex-wrap gap-6 items-end bg-surface-container-low p-4 rounded-lg border border-outline-variant/20">
+<div class="flex flex-col gap-1 w-48">
+<label class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="volume_up">volume_up</span> Âm lượng âm thanh nền
+                                    </label>
+<input class="rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white text-center" step="0.05" type="number" value="0.25"/>
+</div>
+<div class="flex flex-col gap-1 w-48">
+<label class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="timer">timer</span> Giây mỗi mục (folder)
+                                    </label>
+<input class="rounded-md border-outline-variant shadow-sm focus:border-primary focus:ring focus:ring-primary/20 font-body-sm text-body-sm bg-white text-center" type="number" value="20"/>
+</div>
+<div class="flex-1 min-w-[250px]">
+<p class="font-body-sm text-body-sm text-on-surface-variant italic">
+                                        (0.15 = rất nhẹ - 0.25 = nhẹ - 0.5 = rõ). Chỉ áp dụng khi có chọn file âm thanh nền ở trên.
+                                    </p>
+</div>
+</div>
+<div class="bg-error-container/20 border-l-4 border-error p-4 rounded-r-lg">
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-start gap-2">
+<span class="material-symbols-outlined text-error text-lg shrink-0 mt-0.5" data-icon="info">info</span>
+<span>Để hiệu ứng 'none' nếu nền đã đẹp (vd clip cảnh có sẵn). Hiệu ứng tự tạo (mưa/tuyết/sương/bokeh) chỉ cho nền ẢNH TĨNH.<br/> <strong class="text-error">Δ</strong> Visualizer (bars/waves) bật —&gt; render LÂU hơn nhiều (vẽ theo audio, không loop-copy được).</span>
+</p>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center justify-between mt-8 pt-4">
+<div class="flex gap-4">
+<button class="bg-primary hover:bg-[#0052CC] text-white px-8 py-3 rounded-lg font-headline-md text-headline-md shadow-md hover:shadow-lg transition-all flex items-center gap-2 transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+                                TẠO VIDEO NGỦ
+                            </button>
+<button class="bg-[#E3F2FD] text-primary hover:bg-secondary-container px-6 py-3 rounded-lg font-body-base text-body-base font-semibold transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="preview">preview</span>
+                                Xem trước (20s)
+                            </button>
+</div>
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-6 py-3 rounded-lg font-body-base text-body-base font-semibold border border-outline-variant shadow-sm transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+                            Mở thư mục xuất
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer Console -->
+<footer class="bg-[#1E1E1E] border-t border-[#333333] fixed bottom-0 right-0 w-[calc(100%-260px)] h-[200px] flex flex-col p-4 z-30">
+<div class="flex justify-between items-center mb-2 border-b border-[#333333] pb-2">
+<div class="flex gap-4">
+<span class="font-code-log text-code-log text-white font-bold cursor-text">Logs</span>
+<span class="font-code-log text-code-log text-[#D4D4D4] hover:bg-[#333333] px-2 rounded cursor-pointer">Terminal</span>
+<span class="font-code-log text-code-log text-[#D4D4D4] hover:bg-[#333333] px-2 rounded cursor-pointer">Process</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-log text-code-log text-[#28A745] flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-[#28A745]"></span> System Status: Ready
+                </span>
+<button class="text-[#D4D4D4] hover:text-white hover:bg-[#333333] p-1 rounded transition-colors" title="Clear Logs">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto font-code-log text-code-log text-[#D4D4D4] space-y-1">
+<div class="flex gap-2"><span class="text-[#888888]">[14:32:01]</span> <span>System initialized successfully.</span></div>
+<div class="flex gap-2"><span class="text-[#888888]">[14:32:02]</span> <span>Loaded workspace configuration: Automation Pro.</span></div>
+<div class="flex gap-2"><span class="text-[#888888]">[14:35:10]</span> <span class="text-[#28A745]">[INFO] Ready to process video generation tasks.</span></div>
+<!-- Empty lines to simulate terminal readiness -->
+<div class="mt-2 text-[#888888] animate-pulse">_</div>
+</div>
+</footer>
+</body></html>

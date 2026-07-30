@@ -1,0 +1,1410 @@
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>AIWriteX - 智能内容创作平台</title>  
+      
+    <link rel="icon" href="data:," />  
+      
+    <!-- 核心样式文件 -->  
+    <link rel="stylesheet" href="/static/css/main.css">  
+      
+    <!-- 主题样式文件 -->  
+    <link rel="stylesheet" href="/static/css/themes/light-theme.css">  
+    <link rel="stylesheet" href="/static/css/themes/dark-theme.css">  
+      
+    <!-- 组件样式文件 -->  
+    <link rel="stylesheet" href="/static/css/components/header.css">  
+    <link rel="stylesheet" href="/static/css/components/sidebar.css">  
+    <link rel="stylesheet" href="/static/css/components/footer.css">  
+    <link rel="stylesheet" href="/static/css/components/navigation.css">  
+    <link rel="stylesheet" href="/static/css/components/buttons.css">  
+    <link rel="stylesheet" href="/static/css/components/forms.css">  
+    <link rel="stylesheet" href="/static/css/components/notifications.css">  
+    <link rel="stylesheet" href="/static/css/components/modals.css">  
+    <link rel="stylesheet" href="/static/css/components/preview-panel.css">  
+    <link rel="stylesheet" href="/static/css/components/content-editor.css">  
+    
+    <link rel="stylesheet" href="/static/lib/grapesjs/css/grapes.min.css"> 
+    <link rel="stylesheet" href="/static/lib/grapesjs/css/grapesjs-preset-webpage.min.css">
+
+    <!-- 视图样式文件  -->  
+    <link rel="stylesheet" href="/static/css/views/shared-manager.css">  
+    <link rel="stylesheet" href="/static/css/views/creative-workshop.css">  
+    <link rel="stylesheet" href="/static/css/views/article-manager.css">  
+    <link rel="stylesheet" href="/static/css/views/template-manager.css">  
+    <link rel="stylesheet" href="/static/css/views/config-manager.css">  
+</head>  
+  
+<body class="window-mode-standard" data-window-mode="standard">  
+    <div class="app-container">  
+        <!-- 组件化的头部 -->  
+        <header class="app-header">        
+    <a href="https://aiforge.taobao.com" target="_blank" class="app-title-link">      
+        <div class="app-title">    
+            <div class="header-logo-container">      
+                <svg class="logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">    
+                    <defs>    
+                        <linearGradient id="grad-core-header" x1="0%" y1="0%" x2="100%" y2="100%">    
+                            <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />    
+                            <stop offset="100%" style="stop-color:#bd00ff;stop-opacity:1" />    
+                        </linearGradient>    
+                    </defs>    
+                    <circle class="orbit-path orbit-1" cx="32" cy="32" r="28" />    
+                    <circle class="orbit-path orbit-2" cx="32" cy="32" r="20" />    
+                    <path class="core-x" d="M24 24 L40 40 M40 24 L24 40" stroke="url(#grad-core-header)" stroke-width="6" stroke-linecap="round" />    
+                    <circle cx="32" cy="32" r="4" fill="white">    
+                        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>    
+                    </circle>    
+                </svg>     
+            </div>  
+            <div class="title-text-wrapper">  
+                <span class="title-main">AIWriteX</span>        
+                <span class="app-subtitle">智能内容创作平台</span>  
+            </div>  
+        </div>      
+    </a>      
+    <div class="app-status">  
+        <!-- 店铺链接放在左侧 -->  
+        <a href="https://aiforge.taobao.com" target="_blank" class="shop-badge">  
+            <svg class="shop-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">  
+                <circle cx="9" cy="21" r="1"/>  
+                <circle cx="20" cy="21" r="1"/>  
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>  
+            </svg>  
+            <span class="shop-text">官方淘宝店</span>  
+            <span class="shop-badge-hot">HOT</span>  
+        </a>  
+          
+        <!-- 状态指示器移到最右侧 -->  
+        <div class="status-indicator" id="status-indicator">          
+            <span class="status-dot"></span>          
+            <span class="status-text">就绪</span>          
+        </div>  
+    </div>         
+</header>  
+          
+        <!-- 组件化的侧边栏 -->  
+        <aside class="sidebar">  
+    <nav class="nav-menu">  
+        <ul class="nav-list">  
+            <li class="nav-item active">  
+                <a href="#" class="nav-link" data-view="creative-workshop">  
+                    <svg class="nav-icon" viewBox="0 0 24 24">  
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>  
+                    </svg>  
+                    <span>创意工坊</span>  
+                </a>  
+            </li>  
+            <li class="nav-item">  
+                <a href="#" class="nav-link" data-view="article-manager">  
+                    <svg class="nav-icon" viewBox="0 0 24 24">  
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>  
+                        <polyline points="14,2 14,8 20,8"/>  
+                        <line x1="16" y1="13" x2="8" y2="13"/>  
+                        <line x1="16" y1="17" x2="8" y2="17"/>  
+                        <polyline points="10,9 9,9 8,9"/>  
+                    </svg>  
+                    <span>文章管理</span>  
+                </a>  
+            </li>  
+            <li class="nav-item">  
+                <a href="#" class="nav-link" data-view="template-manager">  
+                    <svg class="nav-icon" viewBox="0 0 24 24">  
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>  
+                        <line x1="9" y1="9" x2="15" y2="9"/>  
+                        <line x1="9" y1="12" x2="15" y2="12"/>  
+                        <line x1="9" y1="15" x2="15" y2="15"/>  
+                    </svg>  
+                    <span>模板管理</span>  
+                </a>  
+            </li>  
+            <!-- 系统设置 - 支持二级菜单 -->  
+            <li class="nav-item nav-item-expandable">  
+                <a href="#" class="nav-link nav-toggle" data-view="config-manager">  
+                    <svg class="nav-icon" viewBox="0 0 24 24">  
+                        <circle cx="12" cy="12" r="3"/>  
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>  
+                    </svg>  
+                    <span>系统设置</span>  
+                    <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">  
+                        <polyline points="9,18 15,12 9,6"></polyline>  
+                    </svg>  
+                </a>  
+                <!-- 二级菜单 -->  
+                <ul class="nav-submenu">  
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink active" data-config="ui">  
+                            <span>界面设置</span>  
+                        </a>  
+                    </li>
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink" data-config="base">  
+                            <span>基础设置</span>  
+                        </a>  
+                    </li>  
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink" data-config="creative">  
+                            <span>创意设置</span>  
+                        </a>  
+                    </li>  
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink" data-config="platforms">  
+                            <span>热搜平台</span>  
+                        </a>  
+                    </li>  
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink" data-config="wechat">  
+                            <span>微信公众号</span>  
+                            <span class="config-required">*</span>  
+                        </a>  
+                    </li>  
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink" data-config="api">  
+                            <span>大模型API</span>  
+                            <span class="config-required">*</span>  
+                        </a>  
+                    </li>  
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink" data-config="img-api">  
+                            <span>图片生成API</span>  
+                        </a>  
+                    </li>  
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink" data-config="aiforge">  
+                            <span>AIForge</span>  
+                        </a>  
+                    </li> 
+                    <li class="nav-subitem">  
+                        <a href="#" class="nav-sublink" data-config="image-design">  
+                            <span>页面设计</span>  
+                        </a>  
+                    </li> 
+                </ul>  
+            </li>  
+        </ul>  
+    </nav>  
+</aside>  
+          
+        <!-- 主体布局 -->  
+        <div class="app-main">  
+            <main class="content-area">  
+                <!-- 组件化的视图 -->  
+                <div id="creative-workshop-view" class="view-content">  
+    <div class="workshop-container">  
+          
+        <!-- LOGO和欢迎语 -->  
+        <div class="workshop-header">
+            <div class="logo-container">
+                <svg class="logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad-core" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#bd00ff;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <circle class="orbit-path orbit-1" cx="32" cy="32" r="28" />
+                    
+                    <circle class="orbit-path orbit-2" cx="32" cy="32" r="20" />
+                    
+                    <path class="core-x" d="M24 24 L40 40 M40 24 L24 40" stroke="url(#grad-core)" stroke-width="6" stroke-linecap="round" />
+                    
+                    <circle cx="32" cy="32" r="4" fill="white">
+                        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+            </div>
+
+            <h1 class="workshop-title">AIWriteX</h1>
+
+            <div class="workshop-subtitle">
+                <span class="subtitle-text">输入话题，唤醒无限创意</span>
+                <span class="cursor-blink"></span>
+            </div>
+        </div>
+          
+        <!-- 主输入卡片 -->  
+        <div class="workshop-card">  
+            <!-- 大型输入框 -->  
+            <textarea   
+                id="topic-input"   
+                class="topic-input"  
+                placeholder="输入创作话题，留空自动获取热搜话题..."  
+                rows="4"  
+            ></textarea>  
+            
+            <div id="bottom-progress" class="bottom-progress hidden">  
+                <div class="progress-track">  
+                    <div class="progress-bar" style="width: 0%"></div>  
+                </div> 
+            </div> 
+
+            <!-- 底部工具栏 -->  
+            <div class="input-toolbar">  
+                <!-- 左侧功能按钮 -->  
+                <div class="toolbar-left">                        
+                    <button id="reference-mode-btn" class="toolbar-btn">    
+                        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">    
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>    
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>    
+                        </svg>      
+                        <span>借鉴模式</span>    
+                    </button>  
+                      
+                    <button id="log-progress-btn" class="toolbar-btn">  
+                        <svg class="btn-icon" viewBox="0 0 24 24">  
+                            <path d="M12 20h9"/>  
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>  
+                        </svg>  
+                        <span id="progress-text">运行日志</span>  
+                    </button>  
+                </div>  
+                  
+                <!-- 右侧生成按钮 -->  
+                <div class="toolbar-right">  
+                    <button id="generate-btn" class="generate-btn">  
+                        <svg class="btn-icon" viewBox="0 0 24 24">  
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>  
+                        </svg>  
+                        <span>开始生成</span>  
+                    </button>  
+                </div>  
+            </div>  
+        </div>    
+        
+        <!-- 借鉴模式配置 -->  
+        <div id="reference-mode-panel" class="workshop-config-panel collapsed">  
+            <div class="panel-header">  
+                <h3 class="panel-title">  
+                    <svg class="panel-icon" viewBox="0 0 24 24">  
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>  
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>  
+                    </svg>  
+                    参数设置  
+                </h3>  
+            </div>  
+            
+            <div class="panel-content">    
+                <div class="form-row">    
+                    <div class="form-group">    
+                        <label for="workshop-template-category">模板分类</label>    
+                        <select id="workshop-template-category" class="form-select">    
+                            <option value="">随机分类</option>    
+                            <!-- 动态加载分类选项 -->    
+                        </select>    
+                    </div>    
+                    <div class="form-group">    
+                        <label for="workshop-template-name">模板名称</label>    
+                        <select id="workshop-template-name" class="form-select">    
+                            <option value="">随机模板</option>    
+                            <!-- 动态加载模板选项 -->    
+                        </select>   
+                    </div>  
+                    <div class="form-group">    
+                        <label for="reference-ratio">借鉴比例</label>    
+                        <select id="reference-ratio" class="form-select">    
+                            <option value="10">10%</option>    
+                            <option value="20">20%</option>    
+                            <option value="30" selected>30%</option>    
+                            <option value="50">50%</option>    
+                            <option value="75">75%</option>    
+                        </select>    
+                    </div>    
+                </div>  
+
+                <!-- 参考链接单独一行 -->  
+                <div class="form-group">  
+                    <label for="reference-urls">  
+                        参考链接  
+                        <span class="label-hint">(多个链接用 | 分隔)</span>  
+                    </label>  
+                    <textarea   
+                        id="reference-urls"   
+                        class="form-textarea"  
+                        placeholder="https://example.com/article1 | https://example.com/article2"  
+                        rows="2"  
+                    ></textarea>  
+                </div> 
+            </div> 
+        </div> 
+          
+        <!-- 生成进度区 -->    
+        <div id="generation-progress" class="workshop-config-panel collapsed">    
+            <div class="panel-header">      
+                <h3 class="panel-title">      
+                    <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">      
+                        <path d="M12 20h9"/>      
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>      
+                    </svg>      
+                    日志详情      
+                </h3>  
+                
+                <!-- 新增:标题栏右侧按钮组 -->  
+                <div class="panel-header-actions">  
+                    <button id="clear-logs-btn" class="icon-btn" title="清空日志">      
+                        <svg class="btn-icon-small" viewBox="0 0 24 24">      
+                            <polyline points="3 6 5 6 21 6"/>      
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>      
+                        </svg>      
+                    </button>      
+                    <button id="export-logs-btn" class="icon-btn" title="导出日志">      
+                        <svg class="btn-icon-small" viewBox="0 0 24 24">      
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>      
+                            <polyline points="7 10 12 15 17 10"/>      
+                            <line x1="12" y1="15" x2="12" y2="3"/>      
+                        </svg>      
+                    </button>  
+                </div>  
+            </div>    
+            
+            <div class="panel-content">      
+                <div id="logs-output" class="logs-output"></div>      
+            </div>   
+        </div>
+    </div>  
+</div>  
+                <div id="article-manager-view" class="view-content" style="display: none;">      
+    <div class="manager-layout">      
+        <!-- 左侧状态分类树 -->      
+        <aside class="manager-sidebar">      
+            <div class="sidebar-header">      
+                <h3>文章状态</h3>      
+            </div>      
+            <div class="sidebar-tree" id="article-sidebar-tree"></div>      
+        </aside>      
+              
+        <!-- 主内容区 -->      
+        <main class="main-wrapper">      
+            <div class="manager-toolbar">      
+                <div class="search-box">      
+                    <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                        <circle cx="11" cy="11" r="8"/>      
+                        <path d="m21 21-4.35-4.35"/>      
+                    </svg>      
+                    <input type="text" id="article-search" placeholder="搜索文章...">      
+                </div>      
+                      
+                <div class="toolbar-actions">      
+                    <div class="view-toggle">      
+                        <button class="view-btn active" data-layout="grid" title="网格视图">      
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                                <rect x="3" y="3" width="7" height="7"/>      
+                                <rect x="14" y="3" width="7" height="7"/>      
+                                <rect x="3" y="14" width="7" height="7"/>      
+                                <rect x="14" y="14" width="7" height="7"/>      
+                            </svg>      
+                        </button>      
+                        <button class="view-btn" data-layout="list" title="列表视图">      
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                                <line x1="8" y1="6" x2="21" y2="6"/>      
+                                <line x1="8" y1="12" x2="21" y2="12"/>      
+                                <line x1="8" y1="18" x2="21" y2="18"/>      
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>      
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>      
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>      
+                            </svg>      
+                        </button>      
+                    </div>      
+
+                    <!-- 批量操作按钮组 -->  
+                    <div class="batch-actions-group">  
+                        <button class="btn btn-secondary" id="batch-mode-toggle">  
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
+                                <path d="M9 11l3 3L22 4"/>  
+                                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>  
+                            </svg>  
+                            <span class="batch-mode-text">批量操作</span>  
+                            <span class="batch-count" style="display: none;">(已选 0)</span>  
+                        </button>  
+                        
+                        <!-- 子按钮容器 -->  
+                        <div class="batch-sub-actions" style="display: none;">  
+                            <button class="btn btn-primary" id="batch-publish">  
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
+                                    <path d="M22 2L11 13"/>  
+                                    <path d="M22 2l-7 20-4-9-9-4 20-7z"/>  
+                                </svg>  
+                                批量发布  
+                            </button>  
+                            <button class="btn btn-danger" id="batch-delete">  
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
+                                    <polyline points="3 6 5 6 21 6"/>  
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>  
+                                </svg>  
+                                批量删除  
+                            </button>  
+                        </div>  
+                    </div>      
+                </div>      
+            </div>      
+                  
+            <div class="manager-main">      
+                <div class="content-grid" id="article-content-grid"></div>      
+            </div>      
+        </main>      
+    </div>      
+</div>     
+      
+<!-- 发布对话框 -->  
+<div id="publish-dialog" class="modal-overlay" style="display: none;">      
+    <div class="modal-content publish-modal">      
+        <div class="modal-header">      
+            <h3>发布文章</h3>      
+            <button class="modal-close" onclick="window.articleManager.closePublishDialog()">×</button>      
+        </div>      
+        <div class="modal-body">      
+            <div class="form-group">      
+                <label>选择平台 <span class="required">*</span></label>      
+                <select id="publish-platform-select" class="form-control">      
+                    <option value="">请选择发布平台...</option>      
+                </select>      
+            </div>      
+                  
+            <div class="form-group" id="account-selection-group" style="display: none;">      
+                <label>      
+                    选择账号 <span class="required">*</span>      
+                    <span class="account-count" id="selected-account-count">(已选 0 个)</span>      
+                </label>      
+                      
+                <div class="account-quick-actions">      
+                    <button type="button" class="btn-link" onclick="window.articleManager.selectAllAccounts()">全选</button>      
+                    <span class="divider">|</span>      
+                    <button type="button" class="btn-link" onclick="window.articleManager.deselectAllAccounts()">取消全选</button>      
+                </div>      
+                      
+                <div id="account-list" class="account-checkbox-list"></div>      
+            </div>      
+                  
+            <div id="no-accounts-tip" class="no-accounts-tip" style="display: none;">      
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor">      
+                    <circle cx="12" cy="12" r="10"/>      
+                    <line x1="12" y1="8" x2="12" y2="12"/>      
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>      
+                </svg>      
+                <p>该平台暂无配置的账号</p>      
+                <button class="btn btn-primary" onclick="window.articleManager.goToSettings()">前往设置</button>      
+            </div>      
+        </div>      
+        <div class="modal-footer">      
+            <button class="btn btn-secondary" onclick="window.articleManager.closePublishDialog()">取消</button>      
+            <button class="btn btn-primary" id="confirm-publish-btn" onclick="window.articleManager.confirmPublish()" disabled>确认发布</button>      
+        </div>      
+    </div>      
+</div>  
+                <div id="template-manager-view" class="view-content" style="display: none;">      
+    <div class="manager-layout">      
+        <!-- 左侧分类树 -->      
+        <aside class="manager-sidebar">      
+            <div class="sidebar-header">      
+                <h3>模板分类</h3>      
+                <button class="btn-icon" id="add-category" title="新建分类">      
+                    <svg viewBox="0 0 24 24" width="16" height="16">      
+                        <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2"/>      
+                    </svg>      
+                </button>      
+            </div>      
+            <div class="sidebar-tree" id="template-sidebar-tree"></div>      
+        </aside>      
+              
+        <!-- 主内容区 -->      
+        <main class="main-wrapper">      
+            <div class="manager-toolbar">      
+                <div class="search-box">      
+                    <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                        <circle cx="11" cy="11" r="8"/>      
+                        <path d="m21 21-4.35-4.35"/>      
+                    </svg>      
+                    <input type="text" id="template-search" placeholder="搜索模板...">      
+                </div>     
+                      
+                <div class="toolbar-actions">      
+                    <div class="view-toggle">      
+                        <button class="view-btn active" data-layout="grid" title="网格视图">      
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                                <rect x="3" y="3" width="7" height="7"/>      
+                                <rect x="14" y="3" width="7" height="7"/>      
+                                <rect x="3" y="14" width="7" height="7"/>      
+                                <rect x="14" y="14" width="7" height="7"/>      
+                            </svg>      
+                        </button>      
+                        <button class="view-btn" data-layout="list" title="列表视图">      
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                                <line x1="8" y1="6" x2="21" y2="6"/>      
+                                <line x1="8" y1="12" x2="21" y2="12"/>      
+                                <line x1="8" y1="18" x2="21" y2="18"/>      
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>      
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>      
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>      
+                            </svg>      
+                        </button>      
+                    </div>     
+                          
+                    <button class="btn btn-primary" id="add-template">      
+                        <svg viewBox="0 0 24 24" width="16" height="16">      
+                            <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2"/>      
+                        </svg>      
+                        新建模板      
+                    </button>      
+                </div>      
+            </div>      
+                  
+            <div class="manager-main">      
+                <div class="content-grid" id="template-content-grid"></div>        
+            </div>      
+        </main>      
+    </div>      
+</div>  
+                <div id="config-manager-view" class="view-content" style="display: none;">  
+    <div class="config-layout">  
+        <main class="config-content">
+            <div class="config-panel" id="config-ui">  
+    <div class="config-header">  
+        <h2>界面设置</h2>  
+        <p class="config-description">设置应用界面的外观和行为</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <div class="config-section">  
+            <h3 class="section-title">外观设置</h3>  
+            <div class="form-grid">  
+                <div class="form-group">  
+                    <label for="theme-selector">主题模式</label>  
+                    <select id="theme-selector" name="theme" class="form-control">  
+                        <option value="light">亮色主题</option>  
+                        <option value="dark">暗色主题</option>  
+                    </select>  
+                    <p class="form-help">选择界面的颜色主题</p>  
+                </div>  
+                  
+                <div class="form-group">  
+                    <label for="window-mode-selector">窗口模式</label>  
+                    <select id="window-mode-selector" name="windowMode" class="form-control">  
+                        <option value="STANDARD">标准模式</option>  
+                        <option value="MAXIMIZED">最大化模式</option>  
+                    </select>  
+                    <p class="form-help">选择窗口显示模式</p>  
+                </div>
+                <div class="form-group">    
+                    <label for="design-theme-selector">网页设计器主题</label>    
+                    <select id="design-theme-selector" name="designTheme" class="form-control">    
+                        <option value="follow-system">跟随系统</option>    
+                        <option value="default">默认主题</option>    
+                    </select>    
+                    <p class="form-help">选择页面设计器的主题风格</p>    
+                </div>   
+            </div>  
+        </div>  
+          
+        <div class="config-actions">  
+            <button type="button" class="btn btn-primary" id="save-ui-config">保存设置</button>  
+            <button type="button" class="btn btn-secondary" id="reset-ui-config">恢复默认</button>  
+        </div>  
+    </div>  
+</div>
+            <div class="config-panel" id="config-image-design">   
+    <div class="config-header">  
+        <h2>页面设计</h2>  
+        <p class="config-description">配置HTML页面的全局外观样式</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- 全局开关 -->  
+        <div class="config-section">  
+            <div class="form-group">  
+                <label class="checkbox-label">  
+                    <input type="checkbox" id="use-original-styles">  
+                    <span class="checkbox-custom"></span>  
+                    使用原始HTML样式(不应用以下配置)  
+                </label>  
+                <p class="form-hint" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">  
+                    勾选后，页面设计器将直接使用HTML文件的内联样式，不应用下方的全局样式配置（页面设计参数为实验性功能，请谨慎使用）  
+                </p>  
+            </div>  
+        </div>  
+          
+        <!-- 页面容器 -->  
+        <div class="config-section" id="page-design-settings">  
+            <h3 class="section-title">页面容器</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label>最大宽度(px)</label>  
+                    <input type="number" id="container-max-width" class="form-control" value="750" min="320" max="1200">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>左右外边距(px)</label>  
+                    <input type="number" id="container-margin-h" class="form-control" value="10" min="0" max="50">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>页面背景色</label>  
+                    <input type="color" id="container-bg-color" class="form-control" value="#f8f9fa">  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- 卡片样式 -->  
+        <div class="config-section" id="card-design-settings">  
+            <h3 class="section-title">卡片样式</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label>圆角(px)</label>  
+                    <input type="number" id="card-border-radius" class="form-control" value="12" min="0" max="50">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>内边距(px)</label>  
+                    <input type="number" id="card-padding" class="form-control" value="24" min="8" max="50">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>背景色</label>  
+                    <input type="color" id="card-bg-color" class="form-control" value="#ffffff">  
+                </div>  
+            </div>  
+            <div class="form-row">  
+                <div class="form-group">  
+                    <label>阴影</label>  
+                    <input type="text" id="card-box-shadow" class="form-control" value="0 4px 16px rgba(0,0,0,0.06)">  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- 排版 -->  
+        <div class="config-section" id="typography-design-settings">  
+            <h3 class="section-title">排版</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label>基础字号(px)</label>  
+                    <input type="number" id="typography-font-size" class="form-control" value="16" min="12" max="24">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>行高倍数</label>  
+                    <input type="number" id="typography-line-height" class="form-control" value="1.6" min="1.2" max="2.5" step="0.1">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>标题字号倍数</label>  
+                    <input type="number" id="typography-heading-scale" class="form-control" value="1.5" min="1.2" max="2.0" step="0.1">  
+                </div>  
+            </div>  
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label>文本颜色</label>  
+                    <input type="color" id="typography-text-color" class="form-control" value="#333333">  
+                </div>  
+                <div class="form-group form-group-half">  
+                    <label>标题颜色</label>  
+                    <input type="color" id="typography-heading-color" class="form-control" value="#333333">  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- 间距 -->  
+        <div class="config-section" id="spacing-design-settings">  
+            <h3 class="section-title">间距</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label>Section间距(px)</label>  
+                    <input type="number" id="spacing-section-margin" class="form-control" value="24" min="8" max="50">  
+                </div>  
+                <div class="form-group form-group-half">  
+                    <label>元素间距(px)</label>  
+                    <input type="number" id="spacing-element-margin" class="form-control" value="16" min="8" max="32">  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- 色彩强调 -->  
+        <div class="config-section" id="accent-design-settings">  
+            <h3 class="section-title">色彩强调</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label>主色调</label>  
+                    <input type="color" id="accent-primary-color" class="form-control" value="#3a7bd5">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>辅助色</label>  
+                    <input type="color" id="accent-secondary-color" class="form-control" value="#00b09b">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>高亮背景色</label>  
+                    <input type="color" id="accent-highlight-bg" class="form-control" value="#f0f7ff">  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-page-design-config">  
+            <i class="icon-save"></i>  
+            保存设置  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-page-design-config">  
+            <i class="icon-reset"></i>  
+            恢复默认  
+        </button>  
+    </div>  
+</div>
+            <div id="config-base" class="config-panel active">  
+    <div class="config-header">  
+        <h2>基础设置</h2>  
+        <p class="config-description">设置系统的基本运行参数和发布设置</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- 发布设置区块 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                发布设置  
+            </h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label for="publish-platform">发布平台</label>  
+                    <select id="publish-platform" class="form-control">  
+                        <option value="wechat">微信公众号</option>  
+                        <option value="xiaohongshu">小红书</option>  
+                        <option value="douyin">抖音</option>  
+                        <option value="toutiao">今日头条</option>  
+                        <option value="baijiahao">百家号</option>  
+                        <option value="zhihu">知乎</option>  
+                        <option value="douban">豆瓣</option>  
+                    </select>  
+                    <small class="form-help">选择内容发布的目标平台（当前版本仅支持微信公众号平台）</small>
+                </div>  
+                
+                <div class="form-group form-group-half">  
+                    <label for="article-format">文章格式</label>  
+                    <select id="article-format" class="form-control">  
+                        <option value="html">HTML</option>  
+                        <option value="markdown">MARKDOWN</option>  
+                        <option value="txt">TXT</option>  
+                    </select>  
+                    <small class="form-help">生成文章的格式类型</small>  
+                </div>  
+            </div>  
+            
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="auto-publish">  
+                        <span class="checkbox-custom"></span>  
+                        自动发布  
+                    </label>  
+                    <small class="form-help">生成文章后自动发布到设置的平台</small>  
+                </div>  
+                
+                <div class="form-group form-group-half">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="format-publish">  
+                        <span class="checkbox-custom"></span>  
+                        格式化发布  
+                    </label>  
+                    <small class="form-help">非HTML格式时，格式化后发布以避免混乱</small>  
+                </div>  
+            </div>  
+        </div>
+  
+        <!-- 模板设置区块 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                模板设置  
+            </h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="use-template">  
+                        <span class="checkbox-custom"></span>  
+                        使用模板  
+                    </label>  
+                    <small class="form-help">启用本地内置模板系统生成文章</small>  
+                </div>  
+                
+                <div class="form-group form-group-third">  
+                    <label for="config-template-category">模板分类</label>  
+                    <select id="config-template-category" class="form-control" disabled>  
+                        <option value="">随机分类</option>  
+                        <!-- 动态加载分类选项 -->  
+                    </select>  
+                </div>  
+                
+                <div class="form-group form-group-third">  
+                    <label for="template">模板选择</label>  
+                    <select id="template" class="form-control" disabled>  
+                        <option value="">随机模板</option>  
+                        <!-- 动态加载模板选项 -->  
+                    </select>  
+                </div>  
+            </div>  
+            
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="use-compress">  
+                        <span class="checkbox-custom"></span>  
+                        压缩模板  
+                    </label>  
+                    <small class="form-help">压缩模板以降低token消耗</small>  
+                </div>  
+            </div>  
+        </div>
+  
+        <!-- 生成设置区块 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                生成设置  
+            </h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-quarter">  
+                    <label for="max-search-results">最大搜索数量</label>  
+                    <input type="number" id="max-search-results" class="form-control"   
+                           min="1" max="20" value="10">  
+                    <small class="form-help">AIForge返回的最大搜索结果数（1-20）</small>  
+                </div>  
+                  
+                <div class="form-group form-group-quarter">  
+                    <label for="min-search-results">最小搜索数量</label>  
+                    <input type="number" id="min-search-results" class="form-control"   
+                           min="1" max="10" value="3">  
+                    <small class="form-help">AIForge返回的最小搜索结果数（1-10）</small>  
+                </div>  
+                  
+                <div class="form-group form-group-quarter">  
+                    <label for="min-article-len">最小文章字数</label>  
+                    <input type="number" id="min-article-len" class="form-control"   
+                           min="500" value="800">  
+                    <small class="form-help">生成文章的最小字数</small>  
+                </div>  
+                  
+                <div class="form-group form-group-quarter">  
+                    <label for="max-article-len">最大文章字数</label>  
+                    <input type="number" id="max-article-len" class="form-control"   
+                           max="5000" value="2000">  
+                    <small class="form-help">生成文章的最大字数</small>  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-base-config">  
+            保存设置  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-base-config">  
+            恢复默认  
+        </button>  
+    </div>  
+</div>  
+            <div id="config-creative" class="config-panel">  
+    <div class="config-header">  
+        <div class="header-content">  
+            <div>  
+                <h2>维度化创意</h2>  
+                <p class="config-description">配置多维度创意变换引擎,实现无限创意组合</p>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- ========== 全局配置区域 ========== -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                全局配置  
+            </h3>  
+              
+            <!-- 第一行: 启用开关、创意强度、保持核心信息 -->  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="creative-enabled">  
+                        <span class="checkbox-custom"></span>  
+                        启用维度化创意  
+                    </label>  
+                    <small class="form-help">开启后将对生成的内容进行创意变换</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="creative-intensity">创意强度</label>  
+                    <div class="slider-container">  
+                        <input type="range" id="creative-intensity" class="form-slider"   
+                               min="0.7" max="1.5" step="0.1" value="1.0">  
+                        <span class="slider-value">1.0</span>  
+                    </div>  
+                    <small class="form-help">控制创意变换的激进程度(0.7-1.5)</small>  
+                </div>    
+            </div>  
+              
+            <!-- 第二行: 自动选择、最大维度数、兼容性阈值 -->  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="auto-dimension-selection">  
+                        <span class="checkbox-custom"></span>  
+                        自动选择维度  
+                    </label>  
+                    <small class="form-help">AI智能选择最适合的维度组合</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="max-dimensions">最大维度数</label>  
+                    <input type="number" id="max-dimensions" class="form-control"   
+                           min="0" max="10" value="5">  
+                    <small class="form-help">同时应用的维度最大数量(0-10)</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="compatibility-threshold">兼容性阈值</label>  
+                    <div class="slider-container">  
+                        <input type="range" id="compatibility-threshold" class="form-slider"   
+                               min="0.0" max="1.0" step="0.1" value="0.6">  
+                        <span class="slider-value">0.6</span>  
+                    </div>  
+                    <small class="form-help">维度组合兼容性阈值(0.0-1.0)</small>  
+                </div>  
+            </div>  
+              
+            <!-- 第三行: 允许实验性组合 -->
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="preserve-core-info">  
+                        <span class="checkbox-custom"></span>  
+                        保持核心信息  
+                    </label>  
+                    <small class="form-help">在创意变换中保持文章核心信息不变</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="allow-experimental">  
+                        <span class="checkbox-custom"></span>  
+                        允许实验性组合  
+                    </label>  
+                    <small class="form-help">允许使用实验性的维度组合</small>  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- ========== 维度分组卡片容器 ========== -->  
+        <div id="dimension-groups-container">  
+            <!-- 动态生成5个维度分组卡片 -->  
+        </div>  
+          
+        <!-- ========== 操作按钮 ========== -->  
+        <div class="config-actions">  
+            <button id="save-creative-config" class="btn btn-primary">  
+                保存设置  
+            </button>  
+            <button id="reset-creative-config" class="btn btn-secondary">  
+                恢复默认  
+            </button>  
+        </div>  
+    </div>  
+</div>  
+            <div id="config-platforms" class="config-panel">  
+    <div class="config-header">  
+        <h2>热搜平台</h2>  
+        <p class="config-description">设置各平台热搜话题的随机选取权重,控制选用优先级</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- 平台列表 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                热搜平台列表  
+            </h3>  
+              
+            <div class="platform-list-container">  
+                <table class="platform-table">  
+                    <thead>  
+                        <tr>  
+                            <th class="col-enabled">启用</th>  
+                            <th class="col-platform">平台</th>  
+                            <th class="col-weight">权重</th>  
+                            <th class="col-description">说明</th>  
+                        </tr>  
+                    </thead>  
+                    <tbody id="platform-list-body">  
+                        <!-- 动态生成平台行 -->  
+                    </tbody>  
+                </table>  
+            </div>
+        </div>
+        <!-- 提示信息 -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>设置说明:</strong>  
+                <ul>  
+                    <li>根据权重随机一个平台,获取其当前的最热门话题</li>  
+                    <li>不启用则不会被选取,全部不启用默认采用微博</li>  
+                    <li>修改设置仅当前运行有效，永久生效需保存设置</li>  
+                </ul>  
+            </div>  
+        </div> 
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-platforms-config">  
+            保存设置  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-platforms-config">  
+            恢复默认  
+        </button>  
+    </div>  
+</div>  
+            <div id="config-wechat" class="config-panel">  
+    <div class="config-header">  
+        <h2>微信公众号</h2>  
+        <p class="config-description">设置微信公众号凭证,支持多个账号自动发布</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- 凭证列表容器 -->  
+        <div id="wechat-credentials-container">  
+            <!-- 动态生成凭证卡片 -->  
+        </div>  
+          
+        <!-- 操作按钮 -->  
+        <div class="form-row">  
+            <button type="button" class="btn btn-secondary" id="add-wechat-credential">  
+                添加凭证  
+            </button>  
+        </div>  
+          
+        <!-- 提示信息 -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>设置说明:</strong>  
+                <ul>  
+                    <li>自动发布时,必填 AppID、AppSecret、作者</li>  
+                    <li>群发选项仅对已认证公众号有效</li>
+                    <li>修改设置仅当前运行有效，永久生效需保存设置</li>  
+                </ul>  
+            </div>  
+        </div> 
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-wechat-config">  
+            保存设置  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-wechat-config">  
+            恢复默认  
+        </button>  
+    </div>  
+</div>  
+            <div id="config-api" class="config-panel">  
+    <div class="config-header">  
+        <div class="header-content">  
+            <div>  
+                <h2>大模型API</h2>  
+                <p class="config-description">设置LLM提供商的API密钥和模型参数</p>  
+            </div> 
+        </div>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- API提供商卡片容器 -->  
+        <div id="api-providers-container">  
+            <!-- 动态生成提供商卡片 -->  
+        </div>  
+          
+        <!-- 提示信息 -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>设置说明:</strong>  
+                <ul>  
+                    <li>默认已提供较多模型,原则上只需要填写API KEY</li>  
+                    <li>只需要填写选中的API类型相应的参数</li>
+                    <li>修改设置仅当前运行有效，永久生效需保存设置</li>  
+                </ul>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-api-config">  
+            保存设置  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-api-config">  
+            恢复默认  
+        </button>  
+    </div>  
+</div>  
+            <div id="config-img-api" class="config-panel">  
+    <div class="config-header">  
+        <div class="header-content">  
+            <div>  
+                <h2>图片生成API</h2>  
+                <p class="config-description">设置图片生成服务的API密钥和参数</p>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- 图片API提供商卡片容器 -->  
+        <div id="img-api-providers-container">  
+            <!-- 动态生成提供商卡片 -->  
+        </div>  
+          
+        <!-- 提示信息 -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>设置说明:</strong>  
+                <ul>  
+                    <li>Picsum: 免费随机图片服务,无需设置</li>  
+                    <li>阿里: 需要设置API KEY和模型参数</li>  
+                    <li>点击"设为当前"切换使用的图片生成服务</li>  
+                </ul>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-img-api-config">  
+            保存设置  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-img-api-config">  
+            恢复默认  
+        </button>  
+    </div>  
+</div>  
+            <!-- 在 aiforge-config.html 中重新组织布局 -->  
+<div id="config-aiforge" class="config-panel">  
+    <div class="config-header">  
+        <div class="header-content">  
+            <div>  
+                <h2>AIForge</h2>  
+                <p class="config-description">设置AIForge引擎的LLM提供商和缓存参数</p>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- 通用设置 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                通用设置  
+            </h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label for="aiforge-locale">语言</label>  
+                    <input type="text" id="aiforge-locale" class="form-control" value="中文" disabled>  
+                    <small class="form-help">AIForge使用的语言</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="aiforge-max-rounds">最大重试次数</label>  
+                    <input type="number" id="aiforge-max-rounds" class="form-control" min="1" max="16">  
+                    <small class="form-help">代码生成最大重试次数</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="aiforge-default-max-tokens">默认最大Tokens</label>  
+                    <input type="number" id="aiforge-default-max-tokens" class="form-control" min="1024">  
+                    <small class="form-help">默认的最大Token数量</small>  
+                </div>  
+            </div>  
+        </div> 
+
+        <div id="aiforge-llm-providers-container">  
+            <!-- 动态生成LLM提供商卡片 -->  
+        </div>  
+
+        <!-- 代码缓存设置 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                代码缓存设置  
+            </h3>  
+            
+            <!-- 第一行:启用缓存、最大模块数、失败阈值 -->  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="cache-enabled">  
+                        <span class="checkbox-custom"></span>  
+                        启用缓存  
+                    </label>  
+                    <small class="form-help">启用代码缓存以提高性能</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="cache-max-modules">最大模块数</label>  
+                    <input type="number" id="cache-max-modules" class="form-control" min="1">  
+                    <small class="form-help">缓存的最大模块数量</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="cache-failure-threshold">失败阈值</label>  
+                    <input type="number" id="cache-failure-threshold" class="form-control" min="0" max="1" step="0.1">  
+                    <small class="form-help">触发清理的失败率阈值</small>  
+                </div>  
+            </div>  
+            
+            <!-- 第二行:最大保存天数、清理间隔 -->  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label for="cache-max-save-days">最大保存天数</label>  
+                    <input type="number" id="cache-max-save-days" class="form-control" min="1">  
+                    <small class="form-help">缓存文件的最大保存天数</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="cache-cleanup-interval">清理间隔(小时)</label>  
+                    <input type="number" id="cache-cleanup-interval" class="form-control" min="1">  
+                    <small class="form-help">自动清理的时间间隔</small>  
+                </div>  
+            </div>  
+        </div> 
+          
+        <!-- 提示信息 -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>设置说明:</strong>  
+                <ul>  
+                    <li>选择一个LLM提供商作为AIForge的默认模型</li>  
+                    <li>通用设置和缓存设置通常无需修改</li>  
+                    <li>修改设置仅当前运行有效,永久生效需保存设置</li>  
+                </ul>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-aiforge-config">  
+            保存设置  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-aiforge-config">  
+            恢复默认  
+        </button>  
+    </div>  
+</div>  
+        </main>  
+    </div>  
+</div>
+            </main>  
+        </div>  
+          
+        <!-- 右侧面板 -->  
+        <!-- 预览面板触发按钮 -->  
+<div class="preview-trigger" id="preview-trigger">  
+    <div class="trigger-icon">    
+        <svg viewBox="0 0 24 24" width="20" height="20" style="transform: scaleX(-1);">    
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>    
+            <path d="M2.59 16.59L7.17 12 2.59 7.41 4 6l6 6-6 6-1.41-1.41z"/>    
+        </svg>    
+    </div>
+</div>
+
+<!-- 悬浮预览面板组件 -->  
+<div class="preview-overlay" id="preview-overlay" style="display: none;">  
+    <div class="preview-panel mobile-width">  
+        <div class="preview-header">    
+            <h3 class="preview-title">内容预览</h3>    
+            <div class="preview-controls">    
+                <!-- 【新增】创意工坊专属操作按钮组 -->  
+                <div class="preview-actions" id="preview-actions" style="display: none;">  
+                    <button class="icon-btn" id="preview-edit-btn" title="编辑">  
+                        <svg class="btn-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">  
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>  
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>  
+                        </svg>  
+                    </button>  
+                    <button class="icon-btn" id="preview-design-btn" title="设计">  
+                        <svg class="btn-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">  
+                            <rect x="3" y="3" width="7" height="7"/>  
+                            <rect x="14" y="3" width="7" height="7"/>  
+                            <rect x="3" y="14" width="7" height="7"/>  
+                            <rect x="14" y="14" width="7" height="7"/>  
+                            <path d="M10 10l4 4"/>  
+                        </svg>  
+                    </button>  
+                    <button class="icon-btn" id="preview-publish-btn" title="发布">  
+                        <svg class="btn-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">  
+                            <path d="M22 2L11 13"/>  
+                            <path d="M22 2l-7 20-4-9-9-4 20-7z"/>  
+                        </svg>  
+                    </button>  
+                </div>  
+                
+                <button class="preview-toggle-size" id="preview-toggle-size" title="切换尺寸">    
+                    📱    
+                </button>    
+                <button class="preview-close" id="preview-close">×</button>    
+            </div>    
+        </div> 
+        <div class="preview-content">  
+            <div class="preview-area" id="preview-area">  
+                <p class="preview-placeholder">内容预览将在这里显示</p>  
+            </div>  
+        </div>  
+        <div class="preview-footer">  
+            <div class="preview-info">  
+                <span class="preview-size-info">375×667 (iPhone)</span>  
+            </div>  
+        </div>  
+    </div>  
+</div>  
+          
+        <!-- 组件化的底部 -->  
+        <footer class="app-footer">
+    <!-- 左侧固定信息 -->
+    <div class="footer-left">
+        <a href="https://aiwritex.voidai.cc" target="_blank" class="footer-brand-link">
+            <span class="footer-brand">
+                <span class="version-text">v2.3.1</span>
+                <span class="copyright-text">© 2025 墨智工坊</span>
+            </span>
+        </a>
+        <a href="https://aiforge.taobao.com" target="_blank" class="footer-promo-link">
+            🔥爆款AI工具+代做图文视频服务,1元起抢!点进来看>>
+        </a>
+    </div>
+
+    <!-- 右侧走马灯区域 -->
+    <div class="footer-right">
+        <div class="footer-marquee-container">
+            <div class="footer-marquee-content" id="footer-marquee">
+                <!-- 消息将通过JS动态插入 -->
+            </div>
+        </div>
+    </div>
+</footer>  
+    </div>  
+  
+    <!-- 脚本加载 -->
+    <script src="/static/lib/grapesjs/grapes.min.js"></script>  
+    <script src="/static/lib/grapesjs/plugins/grapesjs-preset-webpage.min.js"></script>
+    <script src="/static/js/image-designer.js"></script>
+ 
+    <script src="/static/lib/marked/marked.min.js"></script>
+    <script src="/static/js/markdown-renderer.js"></script> 
+    <script src="/static/lib/monaco/vs/loader.js"></script>  
+    <script src="/static/js/dialog.js"></script>  
+    <script src="/static/js/preview-panel.js"></script>
+    <script src="/static/js/update-checker.js"></script>
+    <script src="/static/js/footer-marquee.js"></script>  
+    <script src="/static/js/main.js"></script>  
+    <script src="/static/js/progress-manager.js"></script> 
+    <script src="/static/js/creative-workshop.js"></script> 
+    <script src="/static/js/article-manager.js"></script>  
+    <script src="/static/js/template-manager.js"></script>  
+    <script src="/static/js/content-editor.js"></script>  
+    <script src="/static/js/config-manager.js"></script>  
+    <script src="/static/js/theme-manager.js"></script>  
+    <script src="/static/js/window-modes.js"></script>  
+</body>  
+</html>

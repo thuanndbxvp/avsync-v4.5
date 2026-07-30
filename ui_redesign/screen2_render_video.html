@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PeiPei Auto Edit Video - Render Video</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Sans:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-primary": "#b3c5ff",
+                      "surface-container": "#ecedfa",
+                      "surface-container-high": "#e6e7f4",
+                      "on-primary-fixed": "#001849",
+                      "surface-tint": "#0054d6",
+                      "surface-bright": "#faf8ff",
+                      "on-primary-container": "#f8f7ff",
+                      "on-tertiary": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "primary-fixed": "#dae1ff",
+                      "primary-fixed-dim": "#b3c5ff",
+                      "on-tertiary-container": "#fff6f4",
+                      "error-container": "#ffdad6",
+                      "tertiary": "#a33200",
+                      "outline-variant": "#c2c6d8",
+                      "on-tertiary-fixed": "#390c00",
+                      "secondary": "#526069",
+                      "on-error-container": "#93000a",
+                      "secondary-fixed": "#d6e5ef",
+                      "on-secondary-fixed": "#0f1d25",
+                      "inverse-on-surface": "#eff0fd",
+                      "surface-container-highest": "#e1e2ee",
+                      "tertiary-fixed-dim": "#ffb59d",
+                      "primary": "#0050cb",
+                      "primary-container": "#0066ff",
+                      "outline": "#727687",
+                      "on-tertiary-fixed-variant": "#832600",
+                      "surface-variant": "#e1e2ee",
+                      "on-secondary-container": "#56656e",
+                      "error": "#ba1a1a",
+                      "tertiary-fixed": "#ffdbd0",
+                      "on-error": "#ffffff",
+                      "tertiary-container": "#cc4204",
+                      "on-primary-fixed-variant": "#003fa4",
+                      "background": "#faf8ff",
+                      "on-background": "#191b24",
+                      "on-secondary": "#ffffff",
+                      "secondary-container": "#d3e2ed",
+                      "on-surface": "#191b24",
+                      "on-secondary-fixed-variant": "#3b4951",
+                      "inverse-surface": "#2e303a",
+                      "secondary-fixed-dim": "#bac9d3",
+                      "surface-container-low": "#f2f3ff",
+                      "surface-dim": "#d8d9e6",
+                      "surface": "#faf8ff",
+                      "on-surface-variant": "#424656"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "container_padding": "2rem",
+                      "stack_gap_sm": "0.5rem",
+                      "console_height": "200px",
+                      "sidebar_width": "260px",
+                      "gutter": "1.5rem",
+                      "stack_gap_md": "1rem"
+              },
+              "fontFamily": {
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "body-base": [
+                              "Inter"
+                      ],
+                      "code-log": [
+                              "Fira Sans"
+                      ]
+              },
+              "fontSize": {
+                      "label-caps": [
+                              "11px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "30px",
+                              {
+                                      "lineHeight": "38px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-base": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "code-log": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .custom-radio:checked {
+            border-color: #0066ff;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+            background-color: #0066ff;
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .color-preset {
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .color-preset:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-base antialiased h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[260px] bg-surface border-r border-outline-variant flex flex-col py-container_padding z-20">
+<div class="px-gutter mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">PeiPei Auto Edit</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">v1.2.0</p>
+</div>
+<div class="flex-1 overflow-y-auto">
+<ul class="space-y-2">
+<li>
+<a class="flex items-center px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">edit_note</span>
+                        Tạo Prompt
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-3 text-primary font-bold border-r-2 border-primary bg-surface-container-low hover:bg-surface-container-high transition-colors opacity-80" href="#">
+<span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">movie_filter</span>
+                        Render Video
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">bedtime</span>
+                        Video ngủ
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">queue_play_next</span>
+                        Hàng đợi
+                    </a>
+</li>
+<li>
+<a class="flex items-center px-gutter py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+                        Cài đặt
+                    </a>
+</li>
+</ul>
+</div>
+<div class="mt-auto px-gutter border-t border-outline-variant pt-4">
+<a class="flex items-center text-primary hover:bg-surface-container-high py-2 px-3 rounded transition-colors font-label-caps text-label-caps uppercase" href="#">
+<span class="material-symbols-outlined mr-2 text-[18px]">help</span>
+                Hỗ trợ
+            </a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col ml-[260px] relative w-[calc(100%-260px)]">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-gutter h-16 bg-surface border-b border-outline-variant z-10 shrink-0">
+<div class="font-headline-md text-headline-md font-bold text-primary">PeiPei Auto Edit Video</div>
+<div class="flex items-center space-x-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">v1.2.0</span>
+<button class="text-primary hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase">Support</button>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 overflow-y-auto bg-background p-gutter pb-[calc(200px+1.5rem)]">
+<div class="max-w-5xl mx-auto space-y-6">
+<!-- Nhóm 1: Cấu hình Hàng đợi & Nguyên liệu -->
+<section class="bg-surface-container-lowest rounded-lg border border-outline-variant p-6 shadow-sm">
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface mb-4 border-b border-surface-variant pb-2">Nguyên liệu &amp; Hàng đợi</h2>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<label class="w-32 text-right font-body-sm text-on-surface-variant">Hồ sơ kênh:</label>
+<select class="form-select w-64 border-outline-variant rounded focus:ring-primary focus:border-primary text-sm h-8 py-1">
+<option></option>
+</select>
+<button class="bg-surface-container hover:bg-surface-container-high border border-outline-variant px-3 h-8 rounded text-sm flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px]">save</span> Lưu kênh...
+                            </button>
+<span class="text-xs text-on-surface-variant italic">(lưu/áp trọn bộ: khung hình, phụ đề, màu, nhạc, logo, intro...)</span>
+</div>
+<!-- File Inputs -->
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<label class="w-32 text-right font-body-sm text-on-surface-variant">File PHỤ ĐỀ (SRT):</label>
+<input class="form-input flex-1 border-outline-variant rounded focus:ring-primary focus:border-primary text-sm h-8" type="text" value="D:\auto-edit-video-main\input\subtitle.srt"/>
+<button class="bg-surface-container hover:bg-surface-container-high border border-outline-variant px-3 h-8 rounded text-sm transition-colors">Chọn...</button>
+</div>
+<div class="flex items-center gap-3">
+<label class="w-32 text-right font-body-sm text-on-surface-variant">Thư mục ẢNH/CLIP:</label>
+<input class="form-input flex-1 border-outline-variant rounded focus:ring-primary focus:border-primary text-sm h-8" type="text" value="D:\auto-edit-video-main\input\images"/>
+<button class="bg-surface-container hover:bg-surface-container-high border border-outline-variant px-3 h-8 rounded text-sm transition-colors">Chọn...</button>
+</div>
+<div class="flex items-center gap-3">
+<label class="w-32 text-right font-body-sm text-on-surface-variant">File VOICEOVER:</label>
+<input class="form-input flex-1 border-outline-variant rounded focus:ring-primary focus:border-primary text-sm h-8" type="text"/>
+<button class="bg-surface-container hover:bg-surface-container-high border border-outline-variant px-3 h-8 rounded text-sm transition-colors">Chọn...</button>
+</div>
+<div class="flex items-center gap-3">
+<label class="w-32 text-right font-body-sm text-on-surface-variant">File bảng cảnh:</label>
+<input class="form-input flex-1 border-outline-variant rounded focus:ring-primary focus:border-primary text-sm h-8" type="text"/>
+<button class="bg-surface-container hover:bg-surface-container-high border border-outline-variant px-3 h-8 rounded text-sm transition-colors">Chọn...</button>
+</div>
+<div class="flex items-center gap-3">
+<label class="w-32 text-right font-body-sm text-on-surface-variant">Xuất ra MP4:</label>
+<input class="form-input flex-1 border-outline-variant rounded focus:ring-primary focus:border-primary text-sm h-8" type="text" value="D:\auto-edit-video-main\output\final.mp4"/>
+<button class="bg-surface-container hover:bg-surface-container-high border border-outline-variant px-3 h-8 rounded text-sm transition-colors">Chọn...</button>
+</div>
+</div>
+<p class="text-xs text-on-surface-variant ml-35 italic opacity-80 pl-35">
+<span class="material-symbols-outlined text-[14px] align-middle mr-1">info</span>
+                            File bảng cảnh (scenes.csv): để TRỐNG = tự tìm. NÊN CHỌN đúng scenes.csv của video này để render khớp tiếng (tránh dùng nhầm bảng cảnh video khác → cảnh lệch audio).
+                        </p>
+</div>
+</section>
+<!-- Nhóm 2: Tùy chọn Ghép Video -->
+<section class="bg-surface-container-lowest rounded-lg border border-outline-variant p-6 shadow-sm">
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface mb-4 border-b border-surface-variant pb-2">Tùy chọn ghép</h2>
+<div class="space-y-6">
+<!-- Bố cục & Hiệu ứng -->
+<div class="flex items-center gap-6 bg-surface p-3 rounded border border-surface-variant">
+<div class="flex items-center gap-4">
+<span class="font-body-sm font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">aspect_ratio</span> Khung hình:</span>
+<label class="flex items-center gap-1 cursor-pointer">
+<input checked="" class="custom-radio w-4 h-4 text-primary focus:ring-primary" name="aspect" type="radio"/>
+<span class="text-sm">16:9 ngang (YouTube)</span>
+</label>
+<label class="flex items-center gap-1 cursor-pointer">
+<input class="custom-radio w-4 h-4 text-primary focus:ring-primary" name="aspect" type="radio"/>
+<span class="text-sm">9:16 dọc (Shorts/TikTok)</span>
+</label>
+</div>
+<div class="w-px h-6 bg-outline-variant"></div>
+<div class="flex items-center gap-4">
+<label class="flex items-center gap-1 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm">Ken Burns (zoom ảnh tĩnh)</span>
+</label>
+<label class="flex items-center gap-1 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm">Chèn phụ đề</span>
+</label>
+<label class="flex items-center gap-1 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm">Crossfade ảnh</span>
+</label>
+<div class="flex items-center gap-2 ml-2">
+<span class="text-sm">kiểu:</span>
+<select class="form-select border-outline-variant rounded focus:ring-primary focus:border-primary text-sm h-7 py-0 w-24">
+<option>fade</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Cài đặt Phụ đề -->
+<div class="space-y-3">
+<h3 class="font-body-sm font-semibold flex items-center gap-1 text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">subtitles</span> Cài đặt Phụ đề</h3>
+<div class="flex flex-wrap items-center gap-x-6 gap-y-3 ml-5">
+<div class="flex items-center gap-2">
+<select class="form-select border-outline-variant rounded focus:ring-primary text-sm h-7 py-0 w-32">
+<option>Arial Black</option>
+</select>
+<span class="text-sm">Cỡ chữ:</span>
+<input class="form-input border-outline-variant rounded text-sm w-16 h-7 py-0" type="number" value="52"/>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1">
+<span class="text-sm">Màu chữ:</span>
+<div class="w-6 h-6 bg-cyan-400 border border-outline cursor-pointer"></div>
+<button class="text-xs bg-surface-container border border-outline-variant px-2 h-6 rounded">Đổi</button>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-sm">Màu viền:</span>
+<div class="w-6 h-6 bg-teal-700 border border-outline cursor-pointer"></div>
+<button class="text-xs bg-surface-container border border-outline-variant px-2 h-6 rounded">Đổi</button>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 ml-5">
+<span class="text-sm">Cách hiện sub:</span>
+<label class="flex items-center gap-1 cursor-pointer">
+<input checked="" class="custom-radio w-4 h-4 text-primary" name="sub_style" type="radio"/>
+<span class="text-sm">1 TỪ nhảy theo voice (mặc định)</span>
+</label>
+<label class="flex items-center gap-1 cursor-pointer">
+<input class="custom-radio w-4 h-4 text-primary" name="sub_style" type="radio"/>
+<span class="text-sm">Cả câu</span>
+</label>
+<label class="flex items-center gap-1 cursor-pointer">
+<input class="custom-radio w-4 h-4 text-primary" name="sub_style" type="radio"/>
+<span class="text-sm">Cả câu + tô màu từ đang đọc</span>
+</label>
+</div>
+<div class="flex items-center gap-2 ml-5">
+<span class="text-sm">Cỡ chữ nhanh:</span>
+<div class="flex gap-1">
+<button class="bg-surface border border-outline-variant px-2 py-1 text-xs rounded hover:bg-surface-container">Nhỏ</button>
+<button class="bg-surface border border-outline-variant px-2 py-1 text-xs rounded hover:bg-surface-container font-semibold">Vừa (mặc định)</button>
+<button class="bg-surface border border-outline-variant px-2 py-1 text-xs rounded hover:bg-surface-container">To</button>
+<button class="bg-surface border border-outline-variant px-2 py-1 text-xs rounded hover:bg-surface-container">Rất to</button>
+<button class="bg-surface border border-outline-variant px-2 py-1 text-xs rounded hover:bg-surface-container">Khổng lồ</button>
+</div>
+<span class="text-xs text-on-surface-variant italic">(9:16 Shorts nên để 68—84)</span>
+</div>
+<div class="flex items-center gap-2 ml-5 pt-1">
+<span class="text-sm">Preset màu:</span>
+<div class="flex flex-wrap gap-1">
+<!-- Simplified color presets based on request -->
+<button class="color-preset bg-gray-900 text-cyan-400 border-2 border-cyan-400 px-2 py-0.5 text-xs font-bold rounded">Neon</button>
+<button class="color-preset bg-white text-black border border-gray-400 px-2 py-0.5 text-xs font-bold rounded">Classic</button>
+<button class="color-preset bg-gray-100 text-gray-800 border border-gray-300 px-2 py-0.5 text-xs font-bold rounded">Minimal</button>
+<button class="color-preset bg-yellow-400 text-black border border-yellow-500 px-2 py-0.5 text-xs font-bold rounded">Bold</button>
+<button class="color-preset bg-teal-100 text-teal-800 border border-teal-300 px-2 py-0.5 text-xs font-bold rounded">Mint</button>
+<button class="color-preset bg-pink-100 text-pink-800 border border-pink-300 px-2 py-0.5 text-xs font-bold rounded">Rose</button>
+<button class="color-preset bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 text-xs font-bold rounded">Sky</button>
+<button class="color-preset bg-orange-100 text-orange-800 border border-orange-300 px-2 py-0.5 text-xs font-bold rounded">Sunset</button>
+<button class="color-preset bg-purple-100 text-purple-800 border border-purple-300 px-2 py-0.5 text-xs font-bold rounded">Lavender</button>
+<button class="color-preset bg-yellow-100 text-yellow-800 border border-yellow-300 px-2 py-0.5 text-xs font-bold rounded">Lemon</button>
+<button class="color-preset bg-red-100 text-red-800 border border-red-300 px-2 py-0.5 text-xs font-bold rounded">Coral</button>
+<button class="color-preset bg-teal-600 text-white border border-teal-700 px-2 py-0.5 text-xs font-bold rounded">Teal</button>
+</div>
+</div>
+</div>
+<hr class="border-surface-variant"/>
+<!-- Cài đặt Âm thanh & Phim -->
+<div class="space-y-3">
+<div class="flex items-center gap-4 ml-1">
+<span class="font-body-sm font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">movie</span> Màu phim:</span>
+<select class="form-select border-outline-variant rounded focus:ring-primary text-sm h-7 py-0 w-32">
+<option>none</option>
+</select>
+<label class="flex items-center gap-1 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm">Vignette (tối góc)</span>
+</label>
+<label class="flex items-center gap-1 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm">Hạt phim</span>
+</label>
+</div>
+<div class="flex items-center gap-4 ml-1">
+<span class="font-body-sm font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">music_note</span> Nhạc nền:</span>
+<input class="form-input flex-1 border-outline-variant rounded text-sm h-7 max-w-[200px]" type="text"/>
+<button class="bg-surface-container border border-outline-variant px-2 h-7 rounded text-xs">Chọn...</button>
+<span class="text-sm ml-2">Âm lượng:</span>
+<input class="form-input border-outline-variant rounded text-sm w-16 h-7 py-0" step="0.01" type="number" value="0.18"/>
+<label class="flex items-center gap-1 cursor-pointer ml-2">
+<input checked="" class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm">Tự hạ nhạc khi có lời</span>
+</label>
+</div>
+<div class="flex items-center gap-6 ml-5">
+<label class="flex items-center gap-1 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm">Giữ âm thanh gốc của clip (mặc định tắt tiếng)</span>
+</label>
+<div class="flex items-center gap-2">
+<span class="text-sm">Âm lượng tiếng clip:</span>
+<input class="form-input border-outline-variant rounded text-sm w-16 h-7 py-0" step="0.05" type="number" value="0.25"/>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-sm">Âm lượng voice:</span>
+<input class="form-input border-outline-variant rounded text-sm w-16 h-7 py-0" step="0.1" type="number" value="1.0"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Actions -->
+<div class="flex flex-wrap items-center gap-3">
+<button class="bg-primary hover:bg-primary-container text-on-primary font-bold py-2 px-6 rounded shadow flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                        RENDER VIDEO
+                    </button>
+<button class="bg-surface border border-outline-variant hover:bg-surface-container text-on-surface py-2 px-4 rounded flex items-center gap-2 transition-colors text-sm font-semibold">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+                        Xem trước
+                    </button>
+<button class="bg-surface border border-outline-variant hover:bg-surface-container text-on-surface py-2 px-4 rounded flex items-center gap-2 transition-colors text-sm font-semibold">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Thêm vào Hàng đợi
+                    </button>
+<button class="bg-surface border border-outline-variant hover:bg-surface-container text-on-surface py-2 px-4 rounded flex items-center gap-2 transition-colors text-sm font-semibold">
+<span class="material-symbols-outlined text-[18px]">spellcheck</span>
+                        Kiểm tra khớp nghĩa
+                    </button>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-container-low border border-outline-variant hover:bg-surface-container text-on-surface py-1.5 px-3 rounded flex items-center gap-1 transition-colors text-xs">
+<span class="material-symbols-outlined text-[16px]">list</span> Chapters
+                    </button>
+<button class="bg-surface-container-low border border-outline-variant hover:bg-surface-container text-on-surface py-1.5 px-3 rounded flex items-center gap-1 transition-colors text-xs">
+<span class="material-symbols-outlined text-[16px]">image</span> Frame thumbnail
+                    </button>
+<button class="bg-surface-container-low border border-outline-variant hover:bg-surface-container text-on-surface py-1.5 px-3 rounded flex items-center gap-1 transition-colors text-xs">
+<span class="material-symbols-outlined text-[16px]">folder_open</span> Mở thư mục xuất
+                    </button>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer Console -->
+<div class="fixed bottom-0 right-0 h-[200px] left-[260px] bg-[#1E1E1E] border-t border-outline-variant flex flex-col z-30">
+<div class="flex justify-between items-center px-4 py-1 border-b border-[#333333] bg-[#252525]">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase text-xs">Nhật ký</span>
+<div class="flex gap-2">
+<button class="text-[#D4D4D4] opacity-50 hover:opacity-100 hover:bg-white/10 px-2 py-0.5 rounded text-xs transition-colors font-label-caps focus:ring-1 focus:ring-primary">Clear</button>
+<button class="text-[#D4D4D4] opacity-50 hover:opacity-100 hover:bg-white/10 px-2 py-0.5 rounded text-xs transition-colors font-label-caps focus:ring-1 focus:ring-primary">Copy</button>
+</div>
+</div>
+<div class="flex-1 p-stack_gap_md overflow-y-auto font-code-log text-code-log text-[#D4D4D4]">
+<!-- Console logs would appear here -->
+<div class="text-[#28A745]">[2023-10-27 10:00:00] Sẵn sàng.</div>
+</div>
+</div>
+</body></html>

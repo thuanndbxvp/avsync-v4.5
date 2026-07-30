@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chú Quế Tài Chính · DNA Script Engine</title>
+
+    <link rel="icon" href="data:," />
+
+    <!-- 核心kiểu文件 -->
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    <!-- Chủ đềkiểu文件 -->
+    <link rel="stylesheet" href="/static/css/themes/light-theme.css">
+    <link rel="stylesheet" href="/static/css/themes/dark-theme.css">
+
+    <!-- thành phầnkiểu文件 -->
+    <link rel="stylesheet" href="/static/css/components/header.css">
+    <link rel="stylesheet" href="/static/css/components/sidebar.css">
+    <link rel="stylesheet" href="/static/css/components/footer.css">
+    <link rel="stylesheet" href="/static/css/components/navigation.css">
+    <link rel="stylesheet" href="/static/css/components/buttons.css">
+    <link rel="stylesheet" href="/static/css/components/forms.css">
+    <link rel="stylesheet" href="/static/css/components/notifications.css">
+    <link rel="stylesheet" href="/static/css/components/modals.css">
+    <link rel="stylesheet" href="/static/css/components/content-editor.css">
+
+    <!-- viewkiểu文件  -->
+    <link rel="stylesheet" href="/static/css/views/shared-manager.css">
+    <link rel="stylesheet" href="/static/css/views/creative-workshop.css">
+    <link rel="stylesheet" href="/static/css/views/article-manager.css">
+    <link rel="stylesheet" href="/static/css/views/config-manager.css">
+</head>
+
+<body class="window-mode-standard" data-window-mode="standard">
+    <div class="app-container">
+        <header class="app-header">
+    <a href="#" class="app-title-link" data-view="creative-workshop">
+        <div class="app-title">
+            <div class="header-logo-container">
+                <svg class="logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad-core-header" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#bd00ff;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Money-bag shape with $ -->
+                    <path d="M22 14 H42 L48 22 V52 Q48 56 44 56 H20 Q16 56 16 52 V22 Z"
+                          fill="url(#grad-core-header)" opacity="0.18"/>
+                    <path d="M22 14 H42 L48 22 V52 Q48 56 44 56 H20 Q16 56 16 52 V22 Z"
+                          fill="none" stroke="url(#grad-core-header)" stroke-width="2"/>
+                    <path d="M28 12 Q32 8 36 12" fill="none" stroke="url(#grad-core-header)" stroke-width="2.5" stroke-linecap="round"/>
+                    <text x="32" y="42" text-anchor="middle" font-size="22" font-weight="bold"
+                          fill="url(#grad-core-header)" font-family="Arial, sans-serif">$</text>
+                    <circle cx="50" cy="14" r="3" fill="#00e5ff" opacity="0.6">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+            </div>
+            <div class="title-text-wrapper">
+                <span class="title-main">Chú Quế Tài Chính</span>
+                <span class="app-subtitle">Chuyên gia viết kịch bản tài chính cá nhân</span>
+            </div>
+        </div>
+    </a>
+    <div class="app-status">
+        <!-- Brand badge — replaces Taobao shop link -->
+        <div class="brand-badge">
+            <span class="brand-badge-icon">🪙</span>
+            <span class="brand-badge-text">DNA Script Engine</span>
+        </div>
+
+        <!-- Status indicator -->
+        <div class="status-indicator" id="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">Sẵn sàng</span>
+        </div>
+    </div>
+</header>
+        <aside class="sidebar">
+    <nav class="nav-menu">
+        <ul class="nav-list">
+            <!-- PRIMARY: Finance Script Workshop -->
+            <li class="nav-item active">
+                <a href="#" class="nav-link" data-view="creative-workshop">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>Xưởng Kịch bản</span>
+                    <span class="nav-badge">DNA</span>
+                </a>
+            </li>
+
+            <!-- Articles (kept — produced scripts live here) -->
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-view="article-manager">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    <span>Kho bài viết</span>
+                </a>
+            </li>
+
+            <!-- Settings -->
+            <li class="nav-item nav-item-expandable">
+                <a href="#" class="nav-link nav-toggle" data-view="config-manager">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    <span>Cài đặt</span>
+                    <svg class="nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="9,18 15,12 9,6"></polyline>
+                    </svg>
+                </a>
+                <ul class="nav-submenu">
+                    <li class="nav-subitem">
+                        <a href="#" class="nav-sublink active" data-config="base">
+                            <span>Cài đặt chung</span>
+                        </a>
+                    </li>
+                    <li class="nav-subitem">
+                        <a href="#" class="nav-sublink" data-config="api">
+                            <span>API AI</span>
+                            <span class="config-required">*</span>
+                        </a>
+                    </li>
+                    <li class="nav-subitem">
+                        <a href="#" class="nav-sublink" data-config="creative">
+                            <span>Sáng tạo</span>
+                        </a>
+                    </li>
+                    <li class="nav-subitem">
+                        <a href="#" class="nav-sublink" data-config="ui">
+                            <span>Giao diện</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Brand footer at bottom of sidebar -->
+    <div class="sidebar-brand-footer">
+        <div class="sidebar-brand-logo">
+            <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="grad-sidebar" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#bd00ff;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <path d="M32 8 L40 28 L60 30 L44 42 L50 60 L32 50 L14 60 L20 42 L4 30 L24 28 Z"
+                      fill="url(#grad-sidebar)" opacity="0.85"/>
+            </svg>
+        </div>
+        <div class="sidebar-brand-text">
+            <div class="sidebar-brand-name">Chú Quế Tài Chính</div>
+            <div class="sidebar-brand-tag">DNA Script Engine</div>
+        </div>
+    </div>
+</aside>
+
+        <div class="app-main">
+            <main class="content-area">
+                <div id="creative-workshop-view" class="view-content">  
+    <div class="workshop-container">  
+          
+        <!-- LOGO和欢迎语 -->
+        <div class="workshop-header">
+            <div class="logo-container">
+                <svg class="logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad-core" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#bd00ff;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- DNA double helix -->
+                    <path class="orbit-path orbit-1" d="M20 8 Q32 18 44 8 Q32 32 20 32 Q32 32 44 56 Q32 46 20 56"
+                          fill="none" stroke="url(#grad-core)" stroke-width="2.5" opacity="0.7"/>
+                    <path class="orbit-path orbit-2" d="M44 8 Q32 18 20 8 Q32 32 44 32 Q32 32 20 56 Q32 46 44 56"
+                          fill="none" stroke="url(#grad-core)" stroke-width="2.5" opacity="0.7"/>
+                    <line x1="24" y1="20" x2="40" y2="20" stroke="url(#grad-core)" stroke-width="1.5" opacity="0.5"/>
+                    <line x1="22" y1="32" x2="42" y2="32" stroke="url(#grad-core)" stroke-width="1.5" opacity="0.5"/>
+                    <line x1="24" y1="44" x2="40" y2="44" stroke="url(#grad-core)" stroke-width="1.5" opacity="0.5"/>
+
+                    <circle cx="32" cy="32" r="4" fill="white">
+                        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+            </div>
+
+            <h1 class="workshop-title">Chú Quế Tài Chính</h1>
+
+            <div class="workshop-subtitle">
+                <span class="subtitle-text">Chọn chủ đề từ 152 ý tưởng tài chính — hệ thống DNA tự động tạo kịch bản</span>
+                <span class="cursor-blink"></span>
+            </div>
+        </div>
+          
+        <!-- 主输入卡片 -->  
+        <div class="workshop-card">  
+            <!-- 大型ô nhập -->
+            <textarea
+                id="topic-input"
+                class="topic-input"
+                placeholder="Nhập chủ đề tài chính, hoặc chọn từ panel DNA bên dưới..."
+                rows="4"
+            ></textarea>  
+            
+            <div id="bottom-progress" class="bottom-progress hidden">  
+                <div class="progress-track">  
+                    <div class="progress-bar" style="width: 0%"></div>  
+                </div> 
+            </div> 
+
+            <!-- 底部工具栏 -->  
+            <div class="input-toolbar">  
+<!-- Trái侧功能按钮 -->
+                <div class="toolbar-left">
+                    <button id="finance-open-panel-btn" class="toolbar-btn finance-btn-active" title="Mở Finance Niche DNA">
+                        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                        <span>Finance DNA</span>
+                    </button>
+
+                    <button id="log-progress-btn" class="toolbar-btn">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        <span id="progress-text">Nhật ký</span>
+                    </button>
+                </div>
+                  
+                <!-- Phải侧生成按钮 -->  
+                <div class="toolbar-right">  
+                    <button id="generate-btn" class="generate-btn">  
+                        <svg class="btn-icon" viewBox="0 0 24 24">  
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>  
+                        </svg>  
+                        <span>Bắt đầu tạo kịch bản</span>  
+                    </button>  
+                </div>  
+            </div>  
+        </div>    
+        
+        <!-- Reference / tham khảo panel (kept but hidden by default — Finance Niche replaces it) -->
+        <div id="reference-mode-panel" class="workshop-config-panel collapsed hidden">
+            <div class="panel-header">
+                <h3 class="panel-title">
+                    <svg class="panel-icon" viewBox="0 0 24 24">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                    Tham khảo
+                </h3>
+            </div>  
+            
+            <div class="panel-content">    
+                <div class="form-row">    
+                    <div class="form-group">    
+                        <label for="workshop-template-category">Phân loại mẫu</label>    
+                        <select id="workshop-template-category" class="form-select">    
+                            <option value="">Danh mục ngẫu nhiên</option>    
+                            <!-- tải độngPhân loạiTùy chọn -->    
+                        </select>    
+                    </div>    
+                    <div class="form-group">    
+                        <label for="workshop-template-name">MẫuTên</label>    
+                        <select id="workshop-template-name" class="form-select">    
+                            <option value="">随机Mẫu</option>    
+                            <!-- tải độngMẫuTùy chọn -->    
+                        </select>   
+                    </div>  
+                    <div class="form-group">    
+                        <label for="reference-ratio">Tỉ lệ tham khảo</label>    
+                        <select id="reference-ratio" class="form-select">    
+                            <option value="10">10%</option>    
+                            <option value="20">20%</option>    
+                            <option value="30" selected>30%</option>    
+                            <option value="50">50%</option>    
+                            <option value="75">75%</option>    
+                        </select>    
+                    </div>    
+                </div>  
+
+                <!-- Liên kết tham khảo单独一行 -->  
+                <div class="form-group">
+                    <label for="reference-urls">
+                        Liên kết tham khảo
+                        <span class="label-hint">(多个Liên kết用 | 分隔)</span>
+                    </label>
+                    <textarea
+                        id="reference-urls"
+                        class="form-textarea"
+                        placeholder="https://example.com/article1 | https://example.com/article2"
+                        rows="2"
+                    ></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finance Niche DNA Panel — 152 topics from Dark-Frontiers, routed by 5-rule engine -->
+        <div id="finance-niche-panel" class="workshop-config-panel collapsed">
+            <div class="panel-header">
+                <h3 class="panel-title">
+                    <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    Finance Niche (DNA)
+                </h3>
+                <div class="panel-header-actions">
+                    <button id="finance-niche-toggle" class="icon-btn" title="Mở rộng">
+                        <svg class="btn-icon-small" viewBox="0 0 24 24">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-content">
+                <p class="panel-hint">
+                    Chọn chủ đề từ 152 FINANCE_IDEAS. Hệ thống tự route tới branch (listicle / analytical / psychology / mythbusting) và chọn hook phù hợp.
+                </p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="finance-branch-filter">Branch</label>
+                        <select id="finance-branch-filter" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="listicle">Listicle (Top N)</option>
+                            <option value="analytical">Analytical (Phân tích)</option>
+                            <option value="psychology">Psychology (Tâm lý)</option>
+                            <option value="mythbusting">Mythbusting (Bóc phốt)</option>
+                            <option value="fundamental">Fundamental (Kiến thức nền)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="finance-topic-search">Tìm chủ đề</label>
+                        <input id="finance-topic-search" type="text" class="form-input" placeholder="VD: Bitcoin, mua nhà, F0...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="finance-topic-select">Chủ đề (152 ý tưởng từ kênh Chú Que Tài Chính)</label>
+                    <select id="finance-topic-select" class="form-select" size="8">
+                        <option value="">-- Chọn chủ đề hoặc để trống --</option>
+                        <!-- Populated by JS via /api/topics -->
+                    </select>
+                </div>
+
+                <div id="finance-routing-info" class="routing-info hidden">
+                    <div class="routing-row">
+                        <span class="routing-label">Branch:</span>
+                        <span id="finance-routed-branch" class="routing-value">—</span>
+                    </div>
+                    <div class="routing-row">
+                        <span class="routing-label">Hook ưu tiên:</span>
+                        <span id="finance-routed-hook" class="routing-value">—</span>
+                    </div>
+                    <div class="routing-row">
+                        <span class="routing-label">Rule match:</span>
+                        <span id="finance-routed-rule" class="routing-value">—</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="finance-audience">Đối tượng mục tiêu</label>
+                    <input id="finance-audience" type="text" class="form-input"
+                           placeholder="VD: Người đi làm 25-40 tuổi, lương 15-25 triệu">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="finance-word-count">Số từ mong muốn</label>
+                        <select id="finance-word-count" class="form-select">
+                            <option value="2000">2.000 từ (~6 phút)</option>
+                            <option value="3000" selected>3.000 từ (~10 phút)</option>
+                            <option value="4000">4.000 từ (~13 phút)</option>
+                            <option value="5000">5.000 từ (~17 phút)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="finance-hook-override">Hook (để trống = auto)</label>
+                        <select id="finance-hook-override" class="form-select">
+                            <option value="">Auto (theo branch)</option>
+                            <option value="story">Story (kể chuyện)</option>
+                            <option value="data">Data (số liệu)</option>
+                            <option value="myth">Myth (bóc phốt)</option>
+                            <option value="question">Question (câu hỏi)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button id="finance-build-prompt-btn" class="generate-btn secondary" type="button">
+                        Xây dựng Prompt (DNA)
+                    </button>
+
+                    <button id="finance-generate-btn" class="generate-btn primary" type="button" style="margin-left:8px;">
+                        ⚡ Tạo kịch bản ngay
+                    </button>
+                </div>
+
+                <div id="finance-prompt-output" class="hidden">
+                    <label>Prompt đã tạo (đưa vào AI gateway):</label>
+                    <textarea id="finance-prompt-text" class="form-textarea" rows="12" readonly></textarea>
+                    <div class="routing-info" style="margin-top:8px;">
+                        <div class="routing-row">
+                            <span class="routing-label">Branch:</span>
+                            <span id="finance-prompt-branch" class="routing-value">—</span>
+                        </div>
+                        <div class="routing-row">
+                            <span class="routing-label">Hook:</span>
+                            <span id="finance-prompt-hook" class="routing-value">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 生成Tiến trình区 -->    
+        <div id="generation-progress" class="workshop-config-panel collapsed">    
+            <div class="panel-header">      
+                <h3 class="panel-title">      
+                    <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">      
+                        <path d="M12 20h9"/>      
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>      
+                    </svg>      
+                    Nhật ký详情      
+                </h3>  
+                
+                <!-- 新增:Tiêu đề栏Phải侧按钮组 -->  
+                <div class="panel-header-actions">  
+                    <button id="clear-logs-btn" class="icon-btn" title="Xóa sạchNhật ký">      
+                        <svg class="btn-icon-small" viewBox="0 0 24 24">      
+                            <polyline points="3 6 5 6 21 6"/>      
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>      
+                        </svg>      
+                    </button>      
+                    <button id="export-logs-btn" class="icon-btn" title="XuấtNhật ký">      
+                        <svg class="btn-icon-small" viewBox="0 0 24 24">      
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>      
+                            <polyline points="7 10 12 15 17 10"/>      
+                            <line x1="12" y1="15" x2="12" y2="3"/>      
+                        </svg>      
+                    </button>  
+                </div>  
+            </div>    
+            
+            <div class="panel-content">      
+                <div id="logs-output" class="logs-output"></div>      
+            </div>   
+        </div>
+    </div>  
+</div>
+                <div id="article-manager-view" class="view-content" style="display: none;">      
+    <div class="manager-layout">      
+        <!-- Trái侧Trạng tháiPhân loại树 -->      
+        <aside class="manager-sidebar">      
+            <div class="sidebar-header">      
+                <h3>Bài viếtTrạng thái</h3>      
+            </div>      
+            <div class="sidebar-tree" id="article-sidebar-tree"></div>      
+        </aside>      
+              
+        <!-- 主Nội dung区 -->      
+        <main class="main-wrapper">      
+            <div class="manager-toolbar">      
+                <div class="search-box">      
+                    <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                        <circle cx="11" cy="11" r="8"/>      
+                        <path d="m21 21-4.35-4.35"/>      
+                    </svg>      
+                    <input type="text" id="article-search" placeholder="Tìm kiếmBài viết...">      
+                </div>      
+                      
+                <div class="toolbar-actions">      
+                    <div class="view-toggle">      
+                        <button class="view-btn active" data-layout="grid" title="网格view">      
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                                <rect x="3" y="3" width="7" height="7"/>      
+                                <rect x="14" y="3" width="7" height="7"/>      
+                                <rect x="3" y="14" width="7" height="7"/>      
+                                <rect x="14" y="14" width="7" height="7"/>      
+                            </svg>      
+                        </button>      
+                        <button class="view-btn" data-layout="list" title="Danh sáchview">      
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
+                                <line x1="8" y1="6" x2="21" y2="6"/>      
+                                <line x1="8" y1="12" x2="21" y2="12"/>      
+                                <line x1="8" y1="18" x2="21" y2="18"/>      
+                                <line x1="3" y1="6" x2="3.01" y2="6"/>      
+                                <line x1="3" y1="12" x2="3.01" y2="12"/>      
+                                <line x1="3" y1="18" x2="3.01" y2="18"/>      
+                            </svg>      
+                        </button>      
+                    </div>      
+
+                    <!-- 批量操作按钮组 -->  
+                    <div class="batch-actions-group">  
+                        <button class="btn btn-secondary" id="batch-mode-toggle">  
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
+                                <path d="M9 11l3 3L22 4"/>  
+                                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>  
+                            </svg>  
+                            <span class="batch-mode-text">批量操作</span>  
+                            <span class="batch-count" style="display: none;">(已选 0)</span>  
+                        </button>  
+                        
+                        <!-- 子按钮容器 -->  
+                        <div class="batch-sub-actions" style="display: none;">  
+                            <button class="btn btn-primary" id="batch-publish">  
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
+                                    <path d="M22 2L11 13"/>  
+                                    <path d="M22 2l-7 20-4-9-9-4 20-7z"/>  
+                                </svg>  
+                                批量phát hành  
+                            </button>  
+                            <button class="btn btn-danger" id="batch-delete">  
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
+                                    <polyline points="3 6 5 6 21 6"/>  
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>  
+                                </svg>  
+                                Xóa hàng loạt  
+                            </button>  
+                        </div>  
+                    </div>      
+                </div>      
+            </div>      
+                  
+            <div class="manager-main">      
+                <div class="content-grid" id="article-content-grid"></div>      
+            </div>      
+        </main>      
+    </div>      
+</div>     
+      
+<!-- phát hànhhộp thoại -->  
+<div id="publish-dialog" class="modal-overlay" style="display: none;">      
+    <div class="modal-content publish-modal">      
+        <div class="modal-header">      
+            <h3>phát hànhBài viết</h3>      
+            <button class="modal-close" onclick="window.articleManager.closePublishDialog()">×</button>      
+        </div>      
+        <div class="modal-body">      
+            <div class="form-group">      
+                <label>选择Nền tảng <span class="required">*</span></label>      
+                <select id="publish-platform-select" class="form-control">      
+                    <option value="">Vui lòng chọnphát hànhNền tảng...</option>      
+                </select>      
+            </div>      
+                  
+            <div class="form-group" id="account-selection-group" style="display: none;">      
+                <label>      
+                    选择账号 <span class="required">*</span>      
+                    <span class="account-count" id="selected-account-count">(已选 0 个)</span>      
+                </label>      
+                      
+                <div class="account-quick-actions">      
+                    <button type="button" class="btn-link" onclick="window.articleManager.selectAllAccounts()">Chọn tất cả</button>      
+                    <span class="divider">|</span>      
+                    <button type="button" class="btn-link" onclick="window.articleManager.deselectAllAccounts()">HủyChọn tất cả</button>      
+                </div>      
+                      
+                <div id="account-list" class="account-checkbox-list"></div>      
+            </div>      
+                  
+            <div id="no-accounts-tip" class="no-accounts-tip" style="display: none;">      
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor">      
+                    <circle cx="12" cy="12" r="10"/>      
+                    <line x1="12" y1="8" x2="12" y2="12"/>      
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>      
+                </svg>      
+                <p>该Nền tảng暂无Cấu hình的账号</p>      
+                <button class="btn btn-primary" onclick="window.articleManager.goToSettings()">前往Thiết lập</button>      
+            </div>      
+        </div>      
+        <div class="modal-footer">      
+            <button class="btn btn-secondary" onclick="window.articleManager.closePublishDialog()">Hủy</button>      
+            <button class="btn btn-primary" id="confirm-publish-btn" onclick="window.articleManager.confirmPublish()" disabled>Xác nhậnphát hành</button>      
+        </div>      
+    </div>      
+</div>
+                <div id="config-manager-view" class="view-content" style="display: none;">  
+    <div class="config-layout">  
+        <main class="config-content">
+            <div class="config-panel" id="config-ui">  
+    <div class="config-header">  
+        <h2>界面Thiết lập</h2>  
+        <p class="config-description">Thiết lậpÁp dụng界面的外观和行为</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <div class="config-section">  
+            <h3 class="section-title">外观Thiết lập</h3>  
+            <div class="form-grid">  
+                <div class="form-group">  
+                    <label for="theme-selector">Chủ đề模式</label>  
+                    <select id="theme-selector" name="theme" class="form-control">  
+                        <option value="light">亮色Chủ đề</option>  
+                        <option value="dark">暗色Chủ đề</option>  
+                    </select>  
+                    <p class="form-help">选择界面的MàuChủ đề</p>  
+                </div>  
+                  
+                <div class="form-group">  
+                    <label for="window-mode-selector">Chế độ cửa sổ</label>  
+                    <select id="window-mode-selector" name="windowMode" class="form-control">  
+                        <option value="STANDARD">Chế độ chuẩn</option>  
+                        <option value="MAXIMIZED">Phóng to模式</option>  
+                    </select>  
+                    <p class="form-help">选择窗口hiển thị模式</p>  
+                </div>
+                <div class="form-group">    
+                    <label for="design-theme-selector">trang web设计器Chủ đề</label>    
+                    <select id="design-theme-selector" name="designTheme" class="form-control">    
+                        <option value="follow-system">Theo hệ thống</option>    
+                        <option value="default">Mặc địnhChủ đề</option>    
+                    </select>    
+                    <p class="form-help">选择trang设计器的Chủ đềPhong cách</p>    
+                </div>   
+            </div>  
+        </div>  
+          
+        <div class="config-actions">  
+            <button type="button" class="btn btn-primary" id="save-ui-config">LưuThiết lập</button>  
+            <button type="button" class="btn btn-secondary" id="reset-ui-config">khôi phụcMặc định</button>  
+        </div>  
+    </div>  
+</div>
+            <div class="config-panel" id="config-image-design">   
+    <div class="config-header">  
+        <h2>trang设计</h2>  
+        <p class="config-description">Cấu hìnhHTMLtrang的toàn cục外观kiểu</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- toàn cụccông tắc -->  
+        <div class="config-section">  
+            <div class="form-group">  
+                <label class="checkbox-label">  
+                    <input type="checkbox" id="use-original-styles">  
+                    <span class="checkbox-custom"></span>  
+                    使用原始HTMLkiểu(不Áp dụng以DướiCấu hình)  
+                </label>  
+                <p class="form-hint" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">  
+                    勾选后，trang设计器将直接使用HTML文件的内联kiểu，不Áp dụngDưới方的toàn cụckiểuCấu hình（trang设计Tham số为实验性功能，请谨慎使用）  
+                </p>  
+            </div>  
+        </div>  
+          
+        <!-- trang容器 -->  
+        <div class="config-section" id="page-design-settings">  
+            <h3 class="section-title">trang容器</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label>Tối đa宽度(px)</label>  
+                    <input type="number" id="container-max-width" class="form-control" value="750" min="320" max="1200">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>TráiPhải外边距(px)</label>  
+                    <input type="number" id="container-margin-h" class="form-control" value="10" min="0" max="50">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>trangMàu nền</label>  
+                    <input type="color" id="container-bg-color" class="form-control" value="#f8f9fa">  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- 卡片kiểu -->  
+        <div class="config-section" id="card-design-settings">  
+            <h3 class="section-title">卡片kiểu</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label>圆角(px)</label>  
+                    <input type="number" id="card-border-radius" class="form-control" value="12" min="0" max="50">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>内边距(px)</label>  
+                    <input type="number" id="card-padding" class="form-control" value="24" min="8" max="50">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>Màu nền</label>  
+                    <input type="color" id="card-bg-color" class="form-control" value="#ffffff">  
+                </div>  
+            </div>  
+            <div class="form-row">  
+                <div class="form-group">  
+                    <label>阴影</label>  
+                    <input type="text" id="card-box-shadow" class="form-control" value="0 4px 16px rgba(0,0,0,0.06)">  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- 排版 -->  
+        <div class="config-section" id="typography-design-settings">  
+            <h3 class="section-title">排版</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label>基础Cỡ chữ(px)</label>  
+                    <input type="number" id="typography-font-size" class="form-control" value="16" min="12" max="24">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>Cao dòng倍数</label>  
+                    <input type="number" id="typography-line-height" class="form-control" value="1.6" min="1.2" max="2.5" step="0.1">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>Tiêu đềCỡ chữ倍数</label>  
+                    <input type="number" id="typography-heading-scale" class="form-control" value="1.5" min="1.2" max="2.0" step="0.1">  
+                </div>  
+            </div>  
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label>文本Màu</label>  
+                    <input type="color" id="typography-text-color" class="form-control" value="#333333">  
+                </div>  
+                <div class="form-group form-group-half">  
+                    <label>Tiêu đềMàu</label>  
+                    <input type="color" id="typography-heading-color" class="form-control" value="#333333">  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- 间距 -->  
+        <div class="config-section" id="spacing-design-settings">  
+            <h3 class="section-title">间距</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label>Section间距(px)</label>  
+                    <input type="number" id="spacing-section-margin" class="form-control" value="24" min="8" max="50">  
+                </div>  
+                <div class="form-group form-group-half">  
+                    <label>元素间距(px)</label>  
+                    <input type="number" id="spacing-element-margin" class="form-control" value="16" min="8" max="32">  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- 色彩强调 -->  
+        <div class="config-section" id="accent-design-settings">  
+            <h3 class="section-title">色彩强调</h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label>主色调</label>  
+                    <input type="color" id="accent-primary-color" class="form-control" value="#3a7bd5">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>辅助色</label>  
+                    <input type="color" id="accent-secondary-color" class="form-control" value="#00b09b">  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label>高亮Màu nền</label>  
+                    <input type="color" id="accent-highlight-bg" class="form-control" value="#f0f7ff">  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-page-design-config">  
+            <i class="icon-save"></i>  
+            LưuThiết lập  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-page-design-config">  
+            <i class="icon-reset"></i>  
+            khôi phụcMặc định  
+        </button>  
+    </div>  
+</div>
+            <div id="config-base" class="config-panel active">  
+    <div class="config-header">  
+        <h2>基础Thiết lập</h2>  
+        <p class="config-description">Thiết lập系统的基本运行Tham số和phát hànhThiết lập</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- phát hànhThiết lập区块 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                phát hànhThiết lập  
+            </h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label for="publish-platform">phát hànhNền tảng</label>  
+                    <select id="publish-platform" class="form-control">  
+                        <option value="wechat">WeChat Official Account</option>  
+                        <option value="xiaohongshu">Xiaohongshu</option>  
+                        <option value="douyin">Douyin</option>  
+                        <option value="toutiao">Toutiao</option>  
+                        <option value="baijiahao">百家号</option>  
+                        <option value="zhihu">知乎</option>  
+                        <option value="douban">豆瓣</option>  
+                    </select>  
+                    <small class="form-help">选择Nội dungphát hành的目标Nền tảng（当前Phiên bản仅Hỗ trợWeChat Official AccountNền tảng）</small>
+                </div>  
+                
+                <div class="form-group form-group-half">  
+                    <label for="article-format">Bài viết格式</label>  
+                    <select id="article-format" class="form-control">  
+                        <option value="html">HTML</option>  
+                        <option value="markdown">MARKDOWN</option>  
+                        <option value="txt">TXT</option>  
+                    </select>  
+                    <small class="form-help">Tạo bài viết的格式lớp型</small>  
+                </div>  
+            </div>  
+            
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="auto-publish">  
+                        <span class="checkbox-custom"></span>  
+                        Tự độngphát hành  
+                    </label>  
+                    <small class="form-help">Tạo bài viết后Tự độngphát hành到Thiết lập的Nền tảng</small>  
+                </div>  
+                
+                <div class="form-group form-group-half">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="format-publish">  
+                        <span class="checkbox-custom"></span>  
+                        định dạngphát hành  
+                    </label>  
+                    <small class="form-help">非HTML格式时，định dạng后phát hành以避免混乱</small>  
+                </div>  
+            </div>  
+        </div>
+  
+        <!-- MẫuThiết lập区块 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                MẫuThiết lập  
+            </h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="use-template">  
+                        <span class="checkbox-custom"></span>  
+                        使用Mẫu  
+                    </label>  
+                    <small class="form-help">Bật本地内置Mẫu系统Tạo bài viết</small>  
+                </div>  
+                
+                <div class="form-group form-group-third">  
+                    <label for="config-template-category">Phân loại mẫu</label>  
+                    <select id="config-template-category" class="form-control" disabled>  
+                        <option value="">Danh mục ngẫu nhiên</option>  
+                        <!-- tải độngPhân loạiTùy chọn -->  
+                    </select>  
+                </div>  
+                
+                <div class="form-group form-group-third">  
+                    <label for="template">Mẫu选择</label>  
+                    <select id="template" class="form-control" disabled>  
+                        <option value="">随机Mẫu</option>  
+                        <!-- tải độngMẫuTùy chọn -->  
+                    </select>  
+                </div>  
+            </div>  
+            
+            <div class="form-row">  
+                <div class="form-group form-group-half">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="use-compress">  
+                        <span class="checkbox-custom"></span>  
+                        nénMẫu  
+                    </label>  
+                    <small class="form-help">nénMẫu以降低token消耗</small>  
+                </div>  
+            </div>  
+        </div>
+  
+        <!-- 生成Thiết lập区块 -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                生成Thiết lập  
+            </h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-quarter">  
+                    <label for="max-search-results">Tối đaTìm kiếmSố lượng</label>  
+                    <input type="number" id="max-search-results" class="form-control"   
+                           min="1" max="20" value="10">  
+                    <small class="form-help">AIForgetrả về的Tối đaTìm kiếmKết quả数（1-20）</small>  
+                </div>  
+                  
+                <div class="form-group form-group-quarter">  
+                    <label for="min-search-results">Tối thiểuTìm kiếmSố lượng</label>  
+                    <input type="number" id="min-search-results" class="form-control"   
+                           min="1" max="10" value="3">  
+                    <small class="form-help">AIForgetrả về的Tối thiểuTìm kiếmKết quả数（1-10）</small>  
+                </div>  
+                  
+                <div class="form-group form-group-quarter">  
+                    <label for="min-article-len">Tối thiểuBài viết字数</label>  
+                    <input type="number" id="min-article-len" class="form-control"   
+                           min="500" value="800">  
+                    <small class="form-help">Tạo bài viết的Tối thiểu字数</small>  
+                </div>  
+                  
+                <div class="form-group form-group-quarter">  
+                    <label for="max-article-len">Tối đaBài viết字数</label>  
+                    <input type="number" id="max-article-len" class="form-control"   
+                           max="5000" value="2000">  
+                    <small class="form-help">Tạo bài viết的Tối đa字数</small>  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-base-config">  
+            LưuThiết lập  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-base-config">  
+            khôi phụcMặc định  
+        </button>  
+    </div>  
+</div>  
+            <div id="config-creative" class="config-panel">  
+    <div class="config-header">  
+        <div class="header-content">  
+            <div>  
+                <h2>维度化创意</h2>  
+                <p class="config-description">Cấu hình多维度创意变换引擎,实现无限创意组合</p>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- ========== toàn cụcCấu hình区域 ========== -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                toàn cụcCấu hình  
+            </h3>  
+              
+            <!-- 第一行: Bậtcông tắc、创意强度、保持核心信息 -->  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="creative-enabled">  
+                        <span class="checkbox-custom"></span>  
+                        Bật维度化创意  
+                    </label>  
+                    <small class="form-help">开启后将对生成的Nội dung进行创意变换</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="creative-intensity">创意强度</label>  
+                    <div class="slider-container">  
+                        <input type="range" id="creative-intensity" class="form-slider"   
+                               min="0.7" max="1.5" step="0.1" value="1.0">  
+                        <span class="slider-value">1.0</span>  
+                    </div>  
+                    <small class="form-help">控制创意变换的激tiến trình度(0.7-1.5)</small>  
+                </div>    
+            </div>  
+              
+            <!-- 第二行: Tự động选择、Tối đa维度数、兼容性阈值 -->  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="auto-dimension-selection">  
+                        <span class="checkbox-custom"></span>  
+                        Tự động选择维度  
+                    </label>  
+                    <small class="form-help">AI智能选择最适合的维度组合</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="max-dimensions">Tối đa维度数</label>  
+                    <input type="number" id="max-dimensions" class="form-control"   
+                           min="0" max="10" value="5">  
+                    <small class="form-help">同时Áp dụng的维度Tối đaSố lượng(0-10)</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="compatibility-threshold">兼容性阈值</label>  
+                    <div class="slider-container">  
+                        <input type="range" id="compatibility-threshold" class="form-slider"   
+                               min="0.0" max="1.0" step="0.1" value="0.6">  
+                        <span class="slider-value">0.6</span>  
+                    </div>  
+                    <small class="form-help">维度组合兼容性阈值(0.0-1.0)</small>  
+                </div>  
+            </div>  
+              
+            <!-- 第三行: 允许实验性组合 -->
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="preserve-core-info">  
+                        <span class="checkbox-custom"></span>  
+                        保持核心信息  
+                    </label>  
+                    <small class="form-help">在创意变换Giữa保持Bài viết核心信息不变</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="allow-experimental">  
+                        <span class="checkbox-custom"></span>  
+                        允许实验性组合  
+                    </label>  
+                    <small class="form-help">允许使用实验性的维度组合</small>  
+                </div>  
+            </div>  
+        </div>  
+          
+        <!-- ========== 维度Nhóm卡片容器 ========== -->  
+        <div id="dimension-groups-container">  
+            <!-- 动态生成5个维度Nhóm卡片 -->  
+        </div>  
+          
+        <!-- ========== 操作按钮 ========== -->  
+        <div class="config-actions">  
+            <button id="save-creative-config" class="btn btn-primary">  
+                LưuThiết lập  
+            </button>  
+            <button id="reset-creative-config" class="btn btn-secondary">  
+                khôi phụcMặc định  
+            </button>  
+        </div>  
+    </div>  
+</div>  
+            <div id="config-platforms" class="config-panel">  
+    <div class="config-header">  
+        <h2>热搜Nền tảng</h2>  
+        <p class="config-description">Thiết lập各Nền tảng热搜Chủ đề的随机选取Trọng số,控制选用优先级</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- Nền tảngDanh sách -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                热搜Nền tảngDanh sách  
+            </h3>  
+              
+            <div class="platform-list-container">  
+                <table class="platform-table">  
+                    <thead>  
+                        <tr>  
+                            <th class="col-enabled">Bật</th>  
+                            <th class="col-platform">Nền tảng</th>  
+                            <th class="col-weight">Trọng số</th>  
+                            <th class="col-description">Hướng dẫn</th>  
+                        </tr>  
+                    </thead>  
+                    <tbody id="platform-list-body">  
+                        <!-- 动态生成Nền tảng行 -->  
+                    </tbody>  
+                </table>  
+            </div>
+        </div>
+        <!-- Thông báo -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>Thiết lậpHướng dẫn:</strong>  
+                <ul>  
+                    <li>根据Trọng số随机一个Nền tảng,获取其当前的最Nổi bậtChủ đề</li>  
+                    <li>不Bật则不会被选取,Tất cả不BậtMặc định采用Weibo</li>  
+                    <li>修改Thiết lập仅当前运行有效，永久生效需LưuThiết lập</li>  
+                </ul>  
+            </div>  
+        </div> 
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-platforms-config">  
+            LưuThiết lập  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-platforms-config">  
+            khôi phụcMặc định  
+        </button>  
+    </div>  
+</div>  
+            <div id="config-wechat" class="config-panel">  
+    <div class="config-header">  
+        <h2>WeChat Official Account</h2>  
+        <p class="config-description">Thiết lậpWeChat Official Account凭证,Hỗ trợ多个账号Tự độngphát hành</p>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- 凭证Danh sách容器 -->  
+        <div id="wechat-credentials-container">  
+            <!-- 动态生成凭证卡片 -->  
+        </div>  
+          
+        <!-- 操作按钮 -->  
+        <div class="form-row">  
+            <button type="button" class="btn btn-secondary" id="add-wechat-credential">  
+                添加凭证  
+            </button>  
+        </div>  
+          
+        <!-- Thông báo -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>Thiết lậpHướng dẫn:</strong>  
+                <ul>  
+                    <li>Tự độngphát hành时,Bắt buộc AppID、AppSecret、Tác giả</li>  
+                    <li>群发Tùy chọn仅对已xác thực公众号有效</li>
+                    <li>修改Thiết lập仅当前运行有效，永久生效需LưuThiết lập</li>  
+                </ul>  
+            </div>  
+        </div> 
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-wechat-config">  
+            LưuThiết lập  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-wechat-config">  
+            khôi phụcMặc định  
+        </button>  
+    </div>  
+</div>  
+            <div id="config-api" class="config-panel">  
+    <div class="config-header">  
+        <div class="header-content">  
+            <div>  
+                <h2>大Mô hìnhAPI</h2>  
+                <p class="config-description">Thiết lậpLLM提供商的APIKhóa和Mô hìnhTham số</p>  
+            </div> 
+        </div>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- API提供商卡片容器 -->  
+        <div id="api-providers-container">  
+            <!-- 动态生成提供商卡片 -->  
+        </div>  
+          
+        <!-- Thông báo -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>Thiết lậpHướng dẫn:</strong>  
+                <ul>  
+                    <li>Mặc định已提供较多Mô hình,原则Trên只需要填写API KEY</li>  
+                    <li>只需要填写选Giữa的APIlớp型相应的Tham số</li>
+                    <li>修改Thiết lập仅当前运行有效，永久生效需LưuThiết lập</li>  
+                </ul>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-api-config">  
+            LưuThiết lập  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-api-config">  
+            khôi phụcMặc định  
+        </button>  
+    </div>  
+</div>  
+            <div id="config-img-api" class="config-panel">  
+    <div class="config-header">  
+        <div class="header-content">  
+            <div>  
+                <h2>Tạo hìnhAPI</h2>  
+                <p class="config-description">Thiết lậpTạo hìnhdịch vụ的APIKhóa和Tham số</p>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- Hình ảnhAPI提供商卡片容器 -->  
+        <div id="img-api-providers-container">  
+            <!-- 动态生成提供商卡片 -->  
+        </div>  
+          
+        <!-- Thông báo -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>Thiết lậpHướng dẫn:</strong>  
+                <ul>  
+                    <li>Picsum: Miễn phí随机Hình ảnhdịch vụ,无需Thiết lập</li>  
+                    <li>阿里: 需要Thiết lậpAPI KEY和Mô hìnhTham số</li>  
+                    <li>nhấp"设为当前"chuyển đổi使用的Tạo hìnhdịch vụ</li>  
+                </ul>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-img-api-config">  
+            LưuThiết lập  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-img-api-config">  
+            khôi phụcMặc định  
+        </button>  
+    </div>  
+</div>  
+            <!-- 在 aiforge-config.html Giữa重新组织布局 -->  
+<div id="config-aiforge" class="config-panel">  
+    <div class="config-header">  
+        <div class="header-content">  
+            <div>  
+                <h2>AIForge</h2>  
+                <p class="config-description">Thiết lậpAIForge引擎的LLM提供商和bộ đệmTham số</p>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-form">  
+        <!-- 通用Thiết lập -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                通用Thiết lập  
+            </h3>  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label for="aiforge-locale">语言</label>  
+                    <input type="text" id="aiforge-locale" class="form-control" value="Giữa文" disabled>  
+                    <small class="form-help">AIForge使用的语言</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="aiforge-max-rounds">Tối đasố lần thử lại</label>  
+                    <input type="number" id="aiforge-max-rounds" class="form-control" min="1" max="16">  
+                    <small class="form-help">Mã生成Tối đasố lần thử lại</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="aiforge-default-max-tokens">Mặc địnhTối đaTokens</label>  
+                    <input type="number" id="aiforge-default-max-tokens" class="form-control" min="1024">  
+                    <small class="form-help">Mặc định的Tối đaTokenSố lượng</small>  
+                </div>  
+            </div>  
+        </div> 
+
+        <div id="aiforge-llm-providers-container">  
+            <!-- 动态生成LLM提供商卡片 -->  
+        </div>  
+
+        <!-- Mãbộ đệmThiết lập -->  
+        <div class="config-section">  
+            <h3 class="section-title">  
+                Mãbộ đệmThiết lập  
+            </h3>  
+            
+            <!-- 第一行:Bậtbộ đệm、Tối đamô-đun数、Thất bại阈值 -->  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label class="checkbox-label">  
+                        <input type="checkbox" id="cache-enabled">  
+                        <span class="checkbox-custom"></span>  
+                        Bậtbộ đệm  
+                    </label>  
+                    <small class="form-help">BậtMãbộ đệm以提高性能</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="cache-max-modules">Tối đamô-đun数</label>  
+                    <input type="number" id="cache-max-modules" class="form-control" min="1">  
+                    <small class="form-help">bộ đệm的Tối đamô-đunSố lượng</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="cache-failure-threshold">Thất bại阈值</label>  
+                    <input type="number" id="cache-failure-threshold" class="form-control" min="0" max="1" step="0.1">  
+                    <small class="form-help">kích hoạt清理的Thất bại率阈值</small>  
+                </div>  
+            </div>  
+            
+            <!-- 第二行:Tối đaLưungày数、清理间隔 -->  
+            <div class="form-row">  
+                <div class="form-group form-group-third">  
+                    <label for="cache-max-save-days">Tối đaLưungày数</label>  
+                    <input type="number" id="cache-max-save-days" class="form-control" min="1">  
+                    <small class="form-help">bộ đệm文件的Tối đaLưungày数</small>  
+                </div>  
+                <div class="form-group form-group-third">  
+                    <label for="cache-cleanup-interval">清理间隔(giờ)</label>  
+                    <input type="number" id="cache-cleanup-interval" class="form-control" min="1">  
+                    <small class="form-help">Tự động清理的Thời gian间隔</small>  
+                </div>  
+            </div>  
+        </div> 
+          
+        <!-- Thông báo -->  
+        <div class="config-notice">  
+            <svg class="notice-icon" viewBox="0 0 24 24">  
+                <circle cx="12" cy="12" r="10"/>  
+                <line x1="12" y1="16" x2="12" y2="12"/>  
+                <line x1="12" y1="8" x2="12.01" y2="8"/>  
+            </svg>  
+            <div class="notice-content">  
+                <strong>Thiết lậpHướng dẫn:</strong>  
+                <ul>  
+                    <li>选择一个LLM提供商作为AIForge的Mặc địnhMô hình</li>  
+                    <li>通用Thiết lập和bộ đệmThiết lập通常无需修改</li>  
+                    <li>修改Thiết lập仅当前运行有效,永久生效需LưuThiết lập</li>  
+                </ul>  
+            </div>  
+        </div>  
+    </div>  
+      
+    <div class="config-actions">  
+        <button type="button" class="btn btn-primary" id="save-aiforge-config">  
+            LưuThiết lập  
+        </button>  
+        <button type="button" class="btn btn-secondary" id="reset-aiforge-config">  
+            khôi phụcMặc định  
+        </button>  
+    </div>  
+</div>  
+        </main>  
+    </div>  
+</div>
+            </main>
+        </div>
+
+        <!-- Preview panel hidden for finance-only app -->
+        <!-- <!-- Xem trước面板kích hoạt按钮 -->  
+<div class="preview-trigger" id="preview-trigger">  
+    <div class="trigger-icon">    
+        <svg viewBox="0 0 24 24" width="20" height="20" style="transform: scaleX(-1);">    
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>    
+            <path d="M2.59 16.59L7.17 12 2.59 7.41 4 6l6 6-6 6-1.41-1.41z"/>    
+        </svg>    
+    </div>
+</div>
+
+<!-- 悬浮Xem trước面板thành phần -->  
+<div class="preview-overlay" id="preview-overlay" style="display: none;">  
+    <div class="preview-panel mobile-width">  
+        <div class="preview-header">    
+            <h3 class="preview-title">Nội dungXem trước</h3>    
+            <div class="preview-controls">    
+                <!-- 【新增】Xưởng sáng tạo专属操作按钮组 -->  
+                <div class="preview-actions" id="preview-actions" style="display: none;">  
+                    <button class="icon-btn" id="preview-edit-btn" title="Chỉnh sửa">  
+                        <svg class="btn-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">  
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>  
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>  
+                        </svg>  
+                    </button>  
+                    <button class="icon-btn" id="preview-design-btn" title="设计">  
+                        <svg class="btn-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">  
+                            <rect x="3" y="3" width="7" height="7"/>  
+                            <rect x="14" y="3" width="7" height="7"/>  
+                            <rect x="3" y="14" width="7" height="7"/>  
+                            <rect x="14" y="14" width="7" height="7"/>  
+                            <path d="M10 10l4 4"/>  
+                        </svg>  
+                    </button>  
+                    <button class="icon-btn" id="preview-publish-btn" title="phát hành">  
+                        <svg class="btn-icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">  
+                            <path d="M22 2L11 13"/>  
+                            <path d="M22 2l-7 20-4-9-9-4 20-7z"/>  
+                        </svg>  
+                    </button>  
+                </div>  
+                
+                <button class="preview-toggle-size" id="preview-toggle-size" title="chuyển đổi尺寸">    
+                    📱    
+                </button>    
+                <button class="preview-close" id="preview-close">×</button>    
+            </div>    
+        </div> 
+        <div class="preview-content">  
+            <div class="preview-area" id="preview-area">  
+                <p class="preview-placeholder">Nội dungXem trước将在这里hiển thị</p>  
+            </div>  
+        </div>  
+        <div class="preview-footer">  
+            <div class="preview-info">  
+                <span class="preview-size-info">375×667 (iPhone)</span>  
+            </div>  
+        </div>  
+    </div>  
+</div> -->
+
+        <footer class="app-footer">
+    <div class="footer-left">
+        <span class="footer-brand">
+            <span class="version-text">v2.3.1</span>
+            <span class="copyright-text">© 2026 Chú Quế Tài Chính · DNA Script Engine</span>
+        </span>
+    </div>
+    <div class="footer-right">
+        <span class="footer-tagline">Powered by AIWriteX CrewAI · Multi-Agent (Researcher → Writer → Reviewer)</span>
+    </div>
+</footer>
+    </div>
+
+    <!-- Scripts — only those needed for the finance workflow -->
+    <script src="/static/lib/marked/marked.min.js"></script>
+    <script src="/static/js/markdown-renderer.js"></script>
+    <script src="/static/lib/monaco/vs/loader.js"></script>
+    <script src="/static/js/dialog.js"></script>
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/progress-manager.js"></script>
+    <script src="/static/js/creative-workshop.js"></script>
+    <script src="/static/js/article-manager.js"></script>
+    <script src="/static/js/config-manager.js"></script>
+    <script src="/static/js/theme-manager.js"></script>
+    <script src="/static/js/window-modes.js"></script>
+    <!-- Removed: image-designer.js, grapesjs, preview-panel.js, update-checker.js, footer-marquee.js, template-manager.js, content-editor.js -->
+</body>
+</html>

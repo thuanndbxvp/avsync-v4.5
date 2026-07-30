@@ -1,0 +1,222 @@
+[
+  {
+    "cjk": "按钮",
+    "vi": "Nút",
+    "count": 54
+  },
+  {
+    "cjk": "卡片",
+    "vi": "Thẻ",
+    "count": 34
+  },
+  {
+    "cjk": "保存设置",
+    "vi": "Lưu thiết lập",
+    "count": 30
+  },
+  {
+    "cjk": "使用",
+    "vi": "Sử dụng",
+    "count": 30
+  },
+  {
+    "cjk": "信息",
+    "vi": "Thông tin",
+    "count": 26
+  },
+  {
+    "cjk": "容器",
+    "vi": "Vùng chứa",
+    "count": 25
+  },
+  {
+    "cjk": "配置失败",
+    "vi": "cấu hình thất bại",
+    "count": 22
+  },
+  {
+    "cjk": "添加",
+    "vi": "Thêm",
+    "count": 21
+  },
+  {
+    "cjk": "面板",
+    "vi": "Bảng",
+    "count": 21
+  },
+  {
+    "cjk": "模式",
+    "vi": "Chế độ",
+    "count": 21
+  },
+  {
+    "cjk": "文件",
+    "vi": "Tệp",
+    "count": 19
+  },
+  {
+    "cjk": "生成",
+    "vi": "Tạo",
+    "count": 13
+  },
+  {
+    "cjk": "动画",
+    "vi": "Hiệu ứng động",
+    "count": 12
+  },
+  {
+    "cjk": "菜单",
+    "vi": "Menu",
+    "count": 12
+  },
+  {
+    "cjk": "图标",
+    "vi": "Biểu tượng",
+    "count": 10
+  },
+  {
+    "cjk": "类型",
+    "vi": "Loại",
+    "count": 8
+  },
+  {
+    "cjk": "复选框",
+    "vi": "Hộp kiểm",
+    "count": 8
+  },
+  {
+    "cjk": "公众号",
+    "vi": "Tài khoản công khai",
+    "count": 8
+  },
+  {
+    "cjk": "格式",
+    "vi": "Định dạng",
+    "count": 8
+  },
+  {
+    "cjk": "宽度",
+    "vi": "Chiều rộng",
+    "count": 7
+  },
+  {
+    "cjk": "选择器",
+    "vi": "Bộ chọn",
+    "count": 7
+  },
+  {
+    "cjk": "系统",
+    "vi": "Hệ thống",
+    "count": 6
+  },
+  {
+    "cjk": "账号",
+    "vi": "Tài khoản",
+    "count": 6
+  },
+  {
+    "cjk": "操作按钮",
+    "vi": "Nút thao tác",
+    "count": 6
+  },
+  {
+    "cjk": "发布失败",
+    "vi": "Xuất bản thất bại",
+    "count": 6
+  },
+  {
+    "cjk": "详情",
+    "vi": "Chi tiết",
+    "count": 6
+  },
+  {
+    "cjk": "文档",
+    "vi": "Tài liệu",
+    "count": 6
+  },
+  {
+    "cjk": "操作",
+    "vi": "Thao tác",
+    "count": 5
+  },
+  {
+    "cjk": "下拉框",
+    "vi": "Hộp thả xuống",
+    "count": 5
+  },
+  {
+    "cjk": "表单",
+    "vi": "Biểu mẫu",
+    "count": 5
+  },
+  {
+    "cjk": "未发布",
+    "vi": "Chưa xuất bản",
+    "count": 5
+  },
+  {
+    "cjk": "输入",
+    "vi": "Nhập",
+    "count": 4
+  },
+  {
+    "cjk": "错误信息",
+    "vi": "Thông báo lỗi",
+    "count": 4
+  },
+  {
+    "cjk": "弹窗",
+    "vi": "Cửa sổ bật lên",
+    "count": 4
+  },
+  {
+    "cjk": "保存按钮",
+    "vi": "Nút lưu",
+    "count": 4
+  },
+  {
+    "cjk": "模板列表",
+    "vi": "Danh sách mẫu",
+    "count": 4
+  },
+  {
+    "cjk": "新建模板",
+    "vi": "Tạo mẫu mới",
+    "count": 4
+  },
+  {
+    "cjk": "背景",
+    "vi": "Nền",
+    "count": 3
+  },
+  {
+    "cjk": "边框",
+    "vi": "Viền",
+    "count": 3
+  },
+  {
+    "cjk": "确认按钮",
+    "vi": "Nút xác nhận",
+    "count": 3
+  },
+  {
+    "cjk": "文章标题",
+    "vi": "Tiêu đề bài viết",
+    "count": 3
+  },
+  {
+    "cjk": "批量发布",
+    "vi": "Xuất bản hàng loạt",
+    "count": 3
+  },
+  {
+    "cjk": "已发布",
+    "vi": "Đã xuất bản",
+    "count": 3
+  },
+  {
+    "cjk": "重命名",
+    "vi": "Đổi tên",
+    "count": 3
+  }
+]

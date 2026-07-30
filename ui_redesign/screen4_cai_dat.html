@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PeiPei Auto Edit - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Fira+Sans:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#a33200",
+                        "surface-container-high": "#e6e7f4",
+                        "surface-container": "#ecedfa",
+                        "inverse-primary": "#b3c5ff",
+                        "background": "#faf8ff",
+                        "surface-dim": "#d8d9e6",
+                        "on-background": "#191b24",
+                        "surface-tint": "#0054d6",
+                        "tertiary-container": "#cc4204",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#d6e5ef",
+                        "surface-container-low": "#f2f3ff",
+                        "primary": "#0050cb",
+                        "on-primary-fixed-variant": "#003fa4",
+                        "on-surface-variant": "#424656",
+                        "on-primary-container": "#f8f7ff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "inverse-on-surface": "#eff0fd",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#e1e2ee",
+                        "surface-variant": "#e1e2ee",
+                        "secondary-fixed-dim": "#bac9d3",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#191b24",
+                        "on-primary-fixed": "#001849",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "secondary": "#526069",
+                        "primary-container": "#0066ff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb59d",
+                        "on-tertiary-fixed-variant": "#832600",
+                        "outline": "#727687",
+                        "on-tertiary-fixed": "#390c00",
+                        "inverse-surface": "#2e303a",
+                        "tertiary-fixed": "#ffdbd0",
+                        "on-secondary-fixed": "#0f1d25",
+                        "on-secondary-fixed-variant": "#3b4951",
+                        "outline-variant": "#c2c6d8",
+                        "surface": "#faf8ff",
+                        "primary-fixed": "#dae1ff",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#d3e2ed",
+                        "on-secondary-container": "#56656e",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#fff6f4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack_gap_md": "1rem",
+                        "container_padding": "2rem",
+                        "gutter": "1.5rem",
+                        "console_height": "200px",
+                        "sidebar_width": "260px",
+                        "stack_gap_sm": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "code-log": ["Fira Sans"],
+                        "body-base": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "code-log": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "body-base": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base overflow-hidden flex h-screen">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[260px] bg-surface dark:bg-surface-dim border-r border-outline-variant dark:border-outline flex flex-col h-screen py-container_padding z-20">
+<div class="px-gutter mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary">PeiPei Auto Edit</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">v1.2.0</p>
+</div>
+<ul class="flex-1 px-4 space-y-1">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">edit_note</span>
+                    Tạo Prompt
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">movie_filter</span>
+                    Render Video
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">bedtime</span>
+                    Video ngủ
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">queue_play_next</span>
+                    Hàng đợi
+                </a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-primary dark:text-primary-fixed-dim font-bold border-r-2 border-primary bg-primary/10" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+                    Cài đặt
+                </a>
+</li>
+</ul>
+<div class="px-4 mt-auto">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+                Hỗ trợ
+            </a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col ml-[260px] pb-[200px] h-screen relative">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline flex justify-between items-center w-full px-gutter h-16 shrink-0 z-10 sticky top-0">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary">PeiPei Auto Edit Video</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant dark:text-surface-variant bg-surface-container-high px-2 py-1 rounded">v1.2.0</span>
+</div>
+<div>
+<button class="font-label-caps text-label-caps text-primary dark:text-primary-fixed-dim hover:text-primary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">support_agent</span> Support
+                </button>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<main class="flex-1 overflow-y-auto p-gutter bg-background scrollbar-hide">
+<div class="max-w-5xl mx-auto space-y-stack_gap_md">
+<!-- Section 1: Cài đặt Phần mềm -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
+<h2 class="font-headline-md text-headline-md font-bold text-on-background mb-4 border-b border-outline-variant pb-2">Cấu hình Hệ thống</h2>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-center gap-6">
+<span class="text-body-base text-on-surface-variant">Phiên bản hiện tại: 1.2.7</span>
+<div class="flex items-center gap-2">
+<label class="text-body-sm text-on-surface-variant font-medium">Ngôn ngữ / Language</label>
+<select class="form-select rounded-md border-outline-variant text-body-base py-1.5 pl-3 pr-8 focus:border-primary focus:ring-primary focus:ring-1">
+<option>Tiếng Việt</option>
+<option>English</option>
+</select>
+</div>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-secondary-container text-primary-container rounded-md hover:bg-secondary-fixed transition-colors font-medium text-body-sm">
+<span class="material-symbols-outlined text-sm">sync</span> Kiểm tra cập nhật
+                        </button>
+</div>
+</section>
+<!-- Section 2: API viết prompt -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
+<h2 class="font-headline-md text-headline-md font-bold text-on-background mb-4 border-b border-outline-variant pb-2">API viết prompt — chọn nhà cung cấp</h2>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<label class="w-32 text-body-sm font-medium text-on-surface-variant">Nhà cung cấp</label>
+<select class="form-select w-64 rounded-md border-outline-variant text-body-base py-1.5 focus:border-primary focus:ring-primary focus:ring-1">
+<option>Gemini</option>
+<option>OpenAI</option>
+<option>Anthropic</option>
+</select>
+<span class="text-body-sm text-outline italic text-sm">Key tại aistudio.google.com</span>
+</div>
+<div class="flex items-center gap-4">
+<label class="w-32 text-body-sm font-medium text-on-surface-variant">Model</label>
+<div class="flex items-center gap-2 w-64">
+<select class="form-select flex-1 rounded-md border-outline-variant text-body-base py-1.5 focus:border-primary focus:ring-primary focus:ring-1">
+<option>gemini-3.5-flash</option>
+<option>gemini-pro</option>
+</select>
+<button class="p-1.5 border border-outline-variant rounded-md hover:bg-surface-container-high" title="Lấy danh sách model mới">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">refresh</span>
+</button>
+</div>
+<span class="text-body-sm text-outline italic text-sm">(tự cập nhật từ API; model đầu = mặc định rẻ)</span>
+</div>
+<div class="flex items-start gap-4">
+<label class="w-32 text-body-sm font-medium text-on-surface-variant mt-2">API Key</label>
+<div class="flex-1 space-y-3">
+<div class="flex items-center gap-2 relative w-full max-w-2xl">
+<span class="material-symbols-outlined absolute left-3 top-2 text-outline text-sm">lock</span>
+<input class="form-input w-full pl-9 pr-16 rounded-md border-outline-variant text-body-base py-1.5 focus:border-primary focus:ring-primary focus:ring-1 font-mono tracking-widest" type="password" value="****************************************"/>
+<label class="absolute right-3 top-2 flex items-center gap-1 cursor-pointer">
+<input class="form-checkbox h-3 w-3 text-primary border-outline-variant rounded-sm focus:ring-0" type="checkbox"/>
+<span class="text-body-sm text-on-surface-variant">Hiện</span>
+</label>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium text-body-sm">
+<span class="material-symbols-outlined text-sm">save</span> Lưu key
+                                    </button>
+<button class="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-background rounded-md hover:bg-surface-container-high transition-colors font-medium text-body-sm">
+<span class="material-symbols-outlined text-sm">bolt</span> Kiểm tra kết nối
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Style Visual Profile -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col h-[400px]">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low rounded-t-xl">
+<h2 class="font-headline-md text-headline-md font-bold text-on-background">Style Visual Profile (cho từng kênh)</h2>
+</div>
+<div class="flex flex-1 overflow-hidden">
+<!-- Left Col: List -->
+<div class="w-1/3 border-r border-outline-variant flex flex-col bg-surface-bright">
+<div class="p-3 border-b border-outline-variant bg-surface-container-lowest">
+<span class="text-body-sm font-medium text-on-surface-variant">Danh sách:</span>
+</div>
+<div class="flex-1 overflow-y-auto p-2">
+<ul class="space-y-1">
+<li class="bg-primary text-on-primary px-3 py-2 rounded-md text-body-base cursor-pointer">Người que</li>
+<li class="hover:bg-surface-container-high text-on-background px-3 py-2 rounded-md text-body-base cursor-pointer transition-colors">Tâm linh</li>
+<li class="hover:bg-surface-container-high text-on-background px-3 py-2 rounded-md text-body-base cursor-pointer transition-colors">Tài chính (Minimal)</li>
+</ul>
+</div>
+<div class="p-3 border-t border-outline-variant flex gap-2 bg-surface-container-lowest">
+<button class="flex-1 flex justify-center items-center gap-1 py-1.5 border border-outline-variant rounded hover:bg-surface-container-high text-body-sm font-medium">
+<span class="material-symbols-outlined text-sm">add</span> Thêm
+                                </button>
+<button class="flex-1 flex justify-center items-center gap-1 py-1.5 border border-error/50 text-error rounded hover:bg-error-container text-body-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-sm">delete</span> Xoá
+                                </button>
+</div>
+</div>
+<!-- Right Col: Editor -->
+<div class="w-2/3 flex flex-col bg-[#1e1e1e]">
+<div class="p-3 border-b border-[#333] bg-[#2d2d2d]">
+<span class="text-body-sm font-medium text-[#d4d4d4]">Nội dung style (dán mô tả phong cách kênh):</span>
+</div>
+<textarea class="flex-1 w-full bg-transparent text-[#d4d4d4] font-code-log p-4 border-none focus:ring-0 resize-none" spellcheck="false">Flat 2D educational illustration. White OR pure black background - never mixed. Black line art, maximum 3 colors. No shadows, no depth, no environments. Subjects isolated in negative space. Cosmic objects rendered with soft radial glow on black. Stick figure mascot (round glasses, hand-drawn) appears in explainer/comparison scenes. Text overlays in bold black (on white) or bold white (on black). Iconic, minimal detail.</textarea>
+<div class="p-3 border-t border-[#333] bg-[#2d2d2d] flex justify-end gap-3">
+<button class="flex items-center gap-2 px-4 py-1.5 bg-[#444] text-[#fff] rounded hover:bg-[#555] transition-colors font-medium text-body-sm">
+<span class="material-symbols-outlined text-sm">visibility</span> Xem trước style
+                                </button>
+<button class="flex items-center gap-2 px-4 py-1.5 bg-primary text-on-primary rounded hover:bg-primary-container transition-colors font-medium text-body-sm">
+<span class="material-symbols-outlined text-sm">save</span> Lưu profile này
+                                </button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- Footer Console -->
+<footer class="fixed bottom-0 right-0 h-[200px] left-[260px] bg-[#1E1E1E] border-t border-outline-variant flex flex-col p-stack_gap_md overflow-y-auto z-30">
+<div class="flex justify-between items-center mb-2 sticky top-0 bg-[#1E1E1E] py-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Nhật ký hệ thống (Console Logs)</span>
+<div class="flex gap-4">
+<button class="text-[#D4D4D4] font-code-log text-code-log opacity-50 hover:opacity-100 hover:bg-white/10 px-2 py-1 rounded transition-all focus:ring-1 focus:ring-primary">Clear</button>
+<button class="text-[#D4D4D4] font-code-log text-code-log opacity-50 hover:opacity-100 hover:bg-white/10 px-2 py-1 rounded transition-all focus:ring-1 focus:ring-primary">Copy</button>
+</div>
+</div>
+<div class="font-code-log text-code-log text-[#D4D4D4] space-y-1">
+<div class="flex"><span class="text-[#28A745] mr-2">▶</span> <span>[SYSTEM] PeiPei Auto Edit v1.2.7 initialized successfully.</span></div>
+<div class="flex"><span class="text-[#28A745] mr-2">▶</span> <span>[CONFIG] Loaded active settings. Provider: Gemini.</span></div>
+<div class="flex"><span class="text-[#28A745] mr-2">▶</span> <span>[API] Connected to aistudio.google.com. Model list retrieved.</span></div>
+<div class="flex"><span class="text-on-surface-variant mr-2 opacity-50">▶</span> <span class="opacity-70">Waiting for user interaction... Sẵn sàng.</span></div>
+</div>
+</footer>
+</body></html>
