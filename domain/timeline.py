@@ -123,24 +123,65 @@ def split_word_times(seg: dict, uppercase: bool = False) -> list[tuple[str, floa
 # ---------------------------------------------------------------------------
 # Scene grouping (gom các segment SRT thành các cảnh ~target giây)
 # ---------------------------------------------------------------------------
-def group_scenes(segs: Sequence[dict], target: float) -> list[dict]:
-    """Gom các đoạn liền nhau cho tới khi đạt ~target giây thì chốt 1 cảnh.
+# Các dấu ngắt câu hợp lệ — khi câu hiện tại kết thúc bằng 1 trong các dấu này
+# thì ĐƯỢC phép chốt cảnh (dù đang vượt target). Đảm bảo "không mất chữ".
+END_PUNCTUATION = (".", "?", "!", "...", "”", '"')
+# Hard limit: nếu câu vượt target + 5s mà vẫn chưa có dấu ngắt, chốt khẩn cấp
+# để cảnh không lê thê (tránh treo AI / clip Veo quá dài).
+HARD_LIMIT_PAD = 5.0
 
-    Trả list[{start,end,texts}] với 'texts' là list câu thoại trong cảnh.
+
+def _ends_with_punctuation(text: str) -> bool:
+    """True nếu text kết thúc bằng dấu ngắt câu (., ?, !, ..., ”, ").
+
+    Lưu ý: check '...' TRƯỚC, sau đó mới check '.' đơn lẻ (endswith ưu tiên match
+    dài hơn khi dùng tuple, nhưng an toàn hơn với logic tách).
+    """
+    s = text.strip()
+    if not s:
+        return False
+    if s.endswith("..."):
+        return True
+    return s[-1] in END_PUNCTUATION
+
+
+def group_scenes(
+    segs: Sequence[dict],
+    target: float,
+    *,
+    hard_limit_pad: float = HARD_LIMIT_PAD,
+) -> list[dict]:
+    """Gom các đoạn SRT thành cảnh với hybrid Time-based + Semantic-based split.
+
+    Time-based (cũ): gom các đoạn liền nhau cho tới khi đạt ~target giây.
+    Semantic-based (M1.5): khi đạt target, CHỈ chốt cảnh nếu câu hiện tại đã kết
+    thúc bằng dấu ngắt câu (., ?, !, ..., ”, ") — đảm bảo KHÔNG mất chữ.
+    Nếu câu CHƯA kết thúc, vượt target để gộp tiếp — trừ khi vượt hard limit
+    (target + hard_limit_pad) thì chốt khẩn cấp.
+
+    Trả list[{start,end,texts}] với 'texts' = list câu thoại trong cảnh.
     Cảnh cuối cùng: end = start của cảnh kế (nối liền mạch).
     """
+    hard_limit = target + hard_limit_pad
     scenes: list[dict] = []
     cur: dict | None = None
     for s in segs:
         if cur is None:
             cur = {"start": s["start"], "end": s["end"], "texts": [s["text"]]}
             continue
-        if s["end"] - cur["start"] <= target:
-            cur["end"] = s["end"]
-            cur["texts"].append(s["text"])
-        else:
-            scenes.append(cur)
-            cur = {"start": s["start"], "end": s["end"], "texts": [s["text"]]}
+        duration_if_added = s["end"] - cur["start"]
+        if duration_if_added >= target:
+            # Đạt target — kiểm tra semantic
+            if _ends_with_punctuation(s["text"]) or duration_if_added > hard_limit:
+                # Câu đã tròn HOẶC vượt hard limit -> chốt cảnh rồi reset cur
+                cur["end"] = s["end"]
+                cur["texts"].append(s["text"])
+                scenes.append(cur)
+                cur = None   # vòng sau sẽ khởi tạo cur từ segment kế
+                continue
+        # Chưa tới target HOẶC đã tới target nhưng câu chưa tròn + chưa vượt hard limit
+        cur["end"] = s["end"]
+        cur["texts"].append(s["text"])
     if cur:
         scenes.append(cur)
     # nối liền mạch
