@@ -106,6 +106,12 @@ class MainWindow(QMainWindow):
 
         # Lúc này stacked_widget đã có đủ 5 tab thật!
 
+        # ----- M8: Hook currentChanged → refresh tab_prompt khi quay lại tab 0 -----
+        self.stacked_widget.currentChanged.connect(self._on_tab_changed)
+
+        # ----- M8: Hook SettingsTab.profilesChanged → refresh tab_prompt ngay -----
+        self.tab_settings.profilesChanged.connect(self._on_profiles_changed)
+
         # Bottom Console
         self.console_frame = QFrame()
         self.console_frame.setObjectName("ConsoleFrame")
@@ -153,3 +159,16 @@ class MainWindow(QMainWindow):
         for i, btn in enumerate(self.nav_buttons):
             btn.setChecked(i == index)
         self.stacked_widget.setCurrentIndex(index)
+
+    # ----- M8: tab change + profile refresh hooks -----
+    def _on_tab_changed(self, index: int):
+        """Khi user chuyển sang tab Prompt (idx=0): refresh profiles từ file."""
+        if index == 0 and hasattr(self, "tab_prompt") and hasattr(self.tab_prompt, "refresh_profiles"):
+            self.tab_prompt.refresh_profiles()
+
+    def _on_profiles_changed(self):
+        """Bắn trực tiếp từ SettingsTab.profilesChanged (khi user add/del profile ở Settings).
+        Reload combobox ở tab_prompt NGAY — không cần đợi user chuyển tab.
+        """
+        if hasattr(self, "tab_prompt") and hasattr(self.tab_prompt, "refresh_profiles"):
+            self.tab_prompt.refresh_profiles()

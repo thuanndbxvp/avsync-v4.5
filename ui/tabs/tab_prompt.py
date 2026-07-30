@@ -272,6 +272,26 @@ class PromptTab(QWidget):
         layout.addStretch()
 
     # ---------------------------------------------------------------- Helpers
+    def refresh_profiles(self):
+        """M8: API public để main_window gọi khi profiles thay đổi ở Settings.
+        Reload từ ConfigService (file) thay vì self.cfg (cache) để chắc chắn sync.
+        """
+        fresh = ConfigService.instance().load()
+        self.cfg = fresh
+        current_selection = self.profile_combo.currentText()
+        self._populate_profiles()
+        # Cố gắng giữ lại selection nếu vẫn tồn tại
+        if current_selection:
+            idx = self.profile_combo.findText(current_selection)
+            if idx >= 0:
+                self.profile_combo.setCurrentIndex(idx)
+        # Refresh luôn model list (nếu user đổi default provider ở Settings)
+        prov = fresh.get("providers.default_provider", "gemini")
+        if self.cmb_provider.currentText() != prov:
+            idx = self.cmb_provider.findText(prov)
+            if idx >= 0:
+                self.cmb_provider.setCurrentIndex(idx)
+
     def _populate_profiles(self):
         profiles = self.cfg.get("profiles", {})
         self.profile_combo.clear()
