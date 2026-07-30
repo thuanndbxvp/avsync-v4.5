@@ -10,6 +10,9 @@ Dùng chung tiện ích của auto_edit (FFMPEG, run, enc_args, probe_duration, 
 Cách chạy:
     python sleep_video.py --bg canh_dem.jpg --audio nhac_4h.wav --out output/sleep.mp4 --effect rain
 """
+import warnings
+warnings.warn("sleep_video.py is DEPRECATED (M4 legacy file).", DeprecationWarning)
+
 import argparse
 import os
 import sys
@@ -316,6 +319,21 @@ def render_sleep_video(bg_path, audio_path, out_path, config=None, progress_cb=N
                       encoder (auto/cpu), viz (none/bars/waves),
                       ambient (path), ambient_volume (0-1, mặc định 0.25),
                       item_sec (giây mỗi mục nếu bg là folder, mặc định 20).
+
+                      ----- M7 additions (all optional, backward-compat) -----
+                      aspect     (16:9 / 9:16 / 1:1)
+                      width      (int, override default 1920)
+                      height     (int, override default 1080)
+                      fps        (int, override default 30)
+                      noise      (bool, default False)
+                      vignette   (bool, default False)
+                      vignette_intensity / vignette_strength (0-1, default 0.5)
+                      title      (str, burn-in text 5s đầu)
+                      intro      (path video, concat vào đầu)
+                      outro      (path video, concat vào cuối)
+                      logo       (path PNG, overlay)
+                      logo_position (topleft/topright/bottomleft/bottomright/center)
+
         progress_cb:  callback(text) để bắn log lên UI. None = print ra console.
 
     Returns:
@@ -333,6 +351,20 @@ def render_sleep_video(bg_path, audio_path, out_path, config=None, progress_cb=N
         ambient=cfg.get("ambient"),
         ambient_volume=cfg.get("ambient_volume", 0.25),
         item_sec=cfg.get("item_sec", 20.0),
+        # ----- M7 forward -----
+        aspect=cfg.get("aspect"),
+        width=cfg.get("width"),
+        height=cfg.get("height"),
+        fps=cfg.get("fps"),
+        noise=cfg.get("noise", False),
+        vignette=cfg.get("vignette", False),
+        vignette_intensity=cfg.get("vignette_intensity", 0.5),
+        vignette_strength=cfg.get("vignette_strength", 0.5),
+        title=cfg.get("title"),
+        intro=cfg.get("intro"),
+        outro=cfg.get("outro"),
+        logo=cfg.get("logo"),
+        logo_position=cfg.get("logo_position", "topright"),
         progress_cb=progress_cb,
     )
 
@@ -340,6 +372,12 @@ def render_sleep_video(bg_path, audio_path, out_path, config=None, progress_cb=N
 def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
                      max_seconds=None, encoder="auto", viz="none",
                      ambient=None, ambient_volume=0.25, item_sec=20.0,
+                     # ----- M7 extensions (backward-compat: tất cả optional) -----
+                     width=None, height=None, fps=None, aspect=None,
+                     noise=False, vignette=False,
+                     vignette_intensity=0.5, vignette_strength=0.5,
+                     title=None, intro=None, outro=None, logo=None,
+                     logo_position="topright",
                      progress_cb=None):
     def log(msg):
         if progress_cb:
@@ -352,6 +390,18 @@ def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
         raise SystemExit(f"Không thấy file/thư mục nền: {bg}")
     if not os.path.isfile(audio):
         raise SystemExit(f"Không thấy file audio: {audio}")
+
+    # ----- M7: aspect + size override -----
+    # Aspect "9:16" -> 1080x1920; "16:9" -> 1920x1080 (default); None => legacy WIDTH/HEIGHT
+    _W = width or WIDTH
+    _H = height or HEIGHT
+    if aspect == "9:16":
+        _W, _H = 1080, 1920
+    elif aspect == "16:9":
+        _W, _H = 1920, 1080
+    elif aspect == "1:1":
+        _W, _H = 1080, 1080
+    _FPS = fps or FPS
     enc = ae.detect_encoder(encoder)[0]
     adur = ae.probe_duration(audio) or 0.0
     if max_seconds and max_seconds > 0:
@@ -439,9 +489,248 @@ def make_sleep_video(bg, audio, out, effect="rain", intensity="vua", fade=4.0,
                    "-movflags", "+faststart", os.path.abspath(out)])
         ae.run(cmd, timeout=None)
         log("\n" + tr(f"✅ XONG: {os.path.abspath(out)}"))
+
+        # ----- M7 post-process: scale + filters + branding (overlay/intro/outro) -----
+        post_process(
+            out_path=os.path.abspath(out),
+            width=_W, height=_H, fps=_FPS,
+            noise=noise, vignette=vignette,
+            vignette_intensity=vignette_intensity,
+            vignette_strength=vignette_strength,
+            title=title,
+            intro=intro, outro=outro, logo=logo,
+            logo_position=logo_position,
+            log=log,
+        )
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return True
+
+
+# ============================================================================
+# M7 — post-processing cho filter chain + branding overlay
+# ============================================================================
+def post_process(out_path, width, height, fps,
+                 noise=False, vignette=False,
+                 vignette_intensity=0.5, vignette_strength=0.5,
+                 title=None, intro=None, outro=None, logo=None,
+                 logo_position="topright", log=None):
+    """Apply M7 enhancements: scale/fps + noise/vignette filters + branding.
+
+    Strangler pattern: nếu tất cả input = None/False -> no-op (legacy path).
+
+    Branding flow:
+      1. intro (optional): concat vào ĐẦU out_path → tmp_branded_intro.mp4
+      2. outro (optional): concat vào CUỐI → tmp_branded_intro_outro.mp4
+      3. title (optional): burn text 5s vào giữa → tmp_branded_*.mp4
+      4. logo (optional): overlay PNG top-right/bottom-left/etc → final
+      5. noise/vignette (optional): filter chain overlay trên final
+    """
+    if log is None:
+        def log(m): pass
+
+    # Short-circuit nếu không có gì cần post-process
+    needs_post = any([noise, vignette, title, intro, outro, logo,
+                      width != WIDTH or height != HEIGHT, fps != FPS])
+    if not needs_post:
+        return out_path
+
+    cur = out_path
+    tmpdir = tempfile.mkdtemp(prefix="sleep_post_")
+    try:
+        # ----- Step 1: scale + fps normalize -----
+        if width != WIDTH or height != HEIGHT or fps != FPS:
+            scaled = os.path.join(tmpdir, "scaled.mp4")
+            _run_vf_simple(
+                cur, scaled,
+                f"scale={width}:{height}:force_original_aspect_ratio=decrease,"
+                f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:color=black,"
+                f"fps={fps},format=yuv420p",
+                log=log, label=f"scale→{width}x{height}@{fps}fps",
+            )
+            cur = scaled
+
+        # ----- Step 2: intro concat (trước) -----
+        if intro and os.path.isfile(intro):
+            with_intro = os.path.join(tmpdir, "intro.mp4")
+            _run_concat_simple([intro, cur], with_intro, log=log,
+                               label="concat intro")
+            cur = with_intro
+
+        # ----- Step 3: outro concat (sau) -----
+        if outro and os.path.isfile(outro):
+            with_outro = os.path.join(tmpdir, "outro.mp4")
+            _run_concat_simple([cur, outro], with_outro, log=log,
+                               label="concat outro")
+            cur = with_outro
+
+        # ----- Step 4: branding (title burn-in + logo overlay + noise/vignette) -----
+        needs_filter = any([noise, vignette, title, logo])
+        if needs_filter:
+            branded = os.path.join(tmpdir, "branded.mp4")
+            _run_branding(
+                src=cur, dst=branded,
+                title=title, logo=logo, logo_position=logo_position,
+                noise=noise, vignette=vignette,
+                vignette_intensity=vignette_intensity,
+                vignette_strength=vignette_strength,
+                log=log,
+            )
+            cur = branded
+
+        # Replace final output
+        import shutil as _sh
+        _sh.copy2(cur, out_path)
+        log(f"   ✨ Branding/filters applied → {os.path.basename(out_path)}")
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+    return out_path
+
+
+def _run_vf_simple(src, dst, vf, log=None, label="vf"):
+    """ffmpeg pass with single -vf chain, re-encode video + copy audio."""
+    cmd = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error",
+            "-i", src, "-vf", vf,
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-c:a", "copy", "-movflags", "+faststart", dst])
+    if log: log(f"   • Post: {label}...")
+    ae.run(cmd, timeout=None)
+
+
+def _run_concat_simple(parts, dst, log=None, label="concat"):
+    """Concat danh sách file video (same codec) using -c copy (FAST)."""
+    # Build concat list file
+    tmpdir = os.path.dirname(dst)
+    list_file = os.path.join(tmpdir, "_concat_list.txt")
+    with open(list_file, "w", encoding="utf-8") as f:
+        for p in parts:
+            # Windows path -> forward slash for ffmpeg concat demuxer
+            pp = p.replace("\\", "/")
+            f.write(f"file '{pp}'\n")
+    cmd = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error",
+            "-f", "concat", "-safe", "0", "-i", list_file,
+            "-c", "copy", "-movflags", "+faststart", dst])
+    if log: log(f"   • Post: {label} ({len(parts)} đoạn)...")
+    ae.run(cmd, timeout=None)
+
+
+def _run_branding(src, dst, title=None, logo=None, logo_position="topright",
+                  noise=False, vignette=False,
+                  vignette_intensity=0.5, vignette_strength=0.5,
+                  log=None):
+    """Apply title burn-in + logo overlay + noise + vignette trong 1 ffmpeg pass.
+
+    Build filter_complex theo thứ tự:
+      [0:v] -> optional scale (đã làm ở step 1) -> vignette -> noise -> title -> logo overlay
+    """
+    v_filters = []
+    has_audio = True  # best-effort: copy audio
+
+    # Vignette: angle, mode=backward, eval=init → strength/intensity là hằng
+    if vignette:
+        # ffmpeg vignette: angle PI*strength tạo dark edges; intensity = mức dark
+        ang = max(0.0, min(1.0, vignette_strength))
+        v_filters.append(f"vignette=angle={ang*3.14}:mode=backward")
+
+    # Noise: all channels, average ~50 seeds
+    if noise:
+        v_filters.append("noise=alls=20:allf=t+u")
+
+    # Title burn-in: drawtext vào giữa video, 5s đầu (nếu có)
+    if title:
+        safe_title = title.replace("'", "\\'").replace(":", "\\:").replace("\\", "\\\\")
+        # fontfile mặc định — DejaVuSans trên Linux, mặc định ffmpeg fallback khi không có
+        v_filters.append(
+            f"drawtext=text='{safe_title}':fontcolor=white:fontsize=48:"
+            f"box=1:boxcolor=black@0.5:boxborderw=10:"
+            f"x=(w-text_w)/2:y=h-th-40:"
+            f"enable='between(t,0,5)'"
+        )
+
+    # Logo overlay (PNG)
+    inputs_extra = []
+    map_v = "[0:v]"
+    if logo and os.path.isfile(logo):
+        inputs_extra = ["-i", os.path.abspath(logo)]
+        # Compute overlay position
+        pos_map = {
+            "topleft": "10:10",
+            "topright": "W-w-10:10",
+            "bottomleft": "10:H-h-10",
+            "bottomright": "W-w-10:H-h-10",
+            "center": "(W-w)/2:(H-h)/2",
+        }
+        xy = pos_map.get(logo_position, pos_map["topright"])
+        v_filters.append(f"[1:v]scale=120:-1[lg];{map_v}[lg]overlay={xy}")
+        # Rebuild map_v (không dùng vì ffmpeg implicit nhãn [0:v][1:v])
+
+    fc = ",".join(v_filters) if v_filters else "null"
+    cmd = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error",
+            "-i", src] + inputs_extra + [
+            "-filter_complex", fc if logo else v_filters[0] if v_filters else "null",
+            "-map", "[vout]" if logo else "0:v",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-c:a", "copy", "-movflags", "+faststart", dst])
+    # NOTE: filter_complex output label phải thống nhất.
+    # Tránh độ phức tạp của multi-input branding, em làm 2 PASS nếu có logo:
+    #   pass 1: filters (vignette/noise/title) → tmp_filters.mp4
+    #   pass 2: logo overlay → dst
+    if logo and os.path.isfile(logo) and v_filters:
+        # Pass 1: filters (no logo yet)
+        filters_only = [f for f in v_filters if "overlay" not in f]
+        tmp_pass = os.path.join(os.path.dirname(dst), "_pass_filters.mp4")
+        cmd1 = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error",
+                 "-i", src,
+                 "-vf", ",".join(filters_only),
+                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                 "-c:a", "copy", "-movflags", "+faststart", tmp_pass])
+        if log: log("   • Post: branding filters (vignette/noise/title)...")
+        ae.run(cmd1, timeout=None)
+        # Pass 2: logo overlay
+        pos_map = {
+            "topleft": "10:10", "topright": "W-w-10:10",
+            "bottomleft": "10:H-h-10", "bottomright": "W-w-10:H-h-10",
+            "center": "(W-w)/2:(H-h)/2",
+        }
+        xy = pos_map.get(logo_position, pos_map["topright"])
+        cmd2 = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error",
+                 "-i", tmp_pass, "-i", os.path.abspath(logo),
+                 "-filter_complex", f"[1:v]scale=120:-1[lg];[0:v][lg]overlay={xy}[vout]",
+                 "-map", "[vout]", "-map", "0:a?",
+                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                 "-c:a", "copy", "-movflags", "+faststart", dst])
+        if log: log("   • Post: logo overlay...")
+        ae.run(cmd2, timeout=None)
+    elif logo and os.path.isfile(logo):
+        # Logo only (no other filters)
+        pos_map = {
+            "topleft": "10:10", "topright": "W-w-10:10",
+            "bottomleft": "10:H-h-10", "bottomright": "W-w-10:H-h-10",
+            "center": "(W-w)/2:(H-h)/2",
+        }
+        xy = pos_map.get(logo_position, pos_map["topright"])
+        cmd = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error",
+                "-i", src, "-i", os.path.abspath(logo),
+                "-filter_complex", f"[1:v]scale=120:-1[lg];[0:v][lg]overlay={xy}[vout]",
+                "-map", "[vout]", "-map", "0:a?",
+                "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                "-c:a", "copy", "-movflags", "+faststart", dst])
+        if log: log("   • Post: logo overlay...")
+        ae.run(cmd, timeout=None)
+    else:
+        # Filters only (vignette/noise/title), no logo
+        if v_filters:
+            cmd = ([ae.FFMPEG, "-y", "-hide_banner", "-loglevel", "error",
+                    "-i", src,
+                    "-vf", ",".join(v_filters),
+                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                    "-c:a", "copy", "-movflags", "+faststart", dst])
+            if log: log("   • Post: filters (vignette/noise/title)...")
+            ae.run(cmd, timeout=None)
+        else:
+            # Nothing to do (shouldn't reach here)
+            import shutil as _sh
+            _sh.copy2(src, dst)
 
 
 # ----------------------------------------------------------------------------
