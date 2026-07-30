@@ -36,7 +36,12 @@ class PromptWorker(QThread):
             model = self.data.get("model") or cfg.get("models", {}).get(prov)
             key = cfg.get("api_keys", {}).get(prov) or cfg.get("keys", {}).get(prov, "")
             style_mode = self.data.get("style_mode", "in_prompt")
-            style = cfg.get("profiles", {}).get(self.data.get("profile", ""), "")
+            # M10: hybrid schema — profile value có thể là str (cũ) HOẶC dict{"prompt", "thumb"}
+            raw_profile = cfg.get("profiles", {}).get(self.data.get("profile", ""), "")
+            if isinstance(raw_profile, dict):
+                style = str(raw_profile.get("prompt", ""))
+            else:
+                style = str(raw_profile) if raw_profile else ""
 
             if not os.path.isfile(srt):
                 self.log_signal.emit(f"[Error] Không tìm thấy file SRT: {srt}", "#ba1a1a")

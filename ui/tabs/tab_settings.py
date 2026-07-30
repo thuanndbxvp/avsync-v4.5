@@ -15,9 +15,12 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QFrame, QLabel, QLineEdit, QPushButton, QComboBox,
     QMessageBox, QListWidget, QTextEdit, QScrollArea, QSplitter, QInputDialog,
+    QFileDialog,
 )
 from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtGui import QPixmap
 
+import i18n as _i18n
 from services.config_service import ConfigService
 
 
@@ -177,20 +180,51 @@ class SettingsTab(QWidget):
 
         row_prof_btns = QHBoxLayout()
         row_prof_btns.setContentsMargins(8, 8, 8, 8)
-        btn_add_prof = QPushButton("➕ Thêm")
+        btn_add_prof = QPushButton(_i18n.tr("➕ Thêm"))
         btn_add_prof.clicked.connect(self._add_profile)
-        btn_del_prof = QPushButton("🗑 Xoá")
+        btn_del_prof = QPushButton(_i18n.tr("🗑 Xoá"))
         btn_del_prof.setStyleSheet("color: #ba1a1a;")
         btn_del_prof.clicked.connect(self._del_profile)
         row_prof_btns.addWidget(btn_add_prof)
         row_prof_btns.addWidget(btn_del_prof)
         left_layout.addLayout(row_prof_btns)
 
-        # Right: editor + save
+        # Right: editor + thumbnail preview + save
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(0)
+
+        # ----- M10.1: Thumbnail Preview + Browse button -----
+        thumb_row = QHBoxLayout()
+        thumb_row.setContentsMargins(8, 8, 8, 0)
+        thumb_row.setSpacing(12)
+        self.lbl_preview = QLabel()
+        self.lbl_preview.setFixedSize(200, 200)
+        self.lbl_preview.setStyleSheet("border: 1px solid gray;")
+        self.lbl_preview.setAlignment(Qt.AlignCenter)
+        self.lbl_preview.setText(_i18n.tr("Không có ảnh minh họa")
+                                 if False else "Không có ảnh minh họa")
+        thumb_row.addWidget(self.lbl_preview)
+
+        # Vertical stack: Browse button + hint label
+        thumb_btns_col = QVBoxLayout()
+        thumb_btns_col.setSpacing(8)
+        self.btn_browse_thumb = QPushButton("🖼 Chọn Ảnh Minh Họa")
+        self.btn_browse_thumb.setStyleSheet(
+            "background: #F8F9FA; border: 1px solid #DEE2E6;"
+            " padding: 6px 12px; border-radius: 4px;"
+        )
+        self.btn_browse_thumb.clicked.connect(self._browse_thumb)
+        thumb_btns_col.addWidget(self.btn_browse_thumb)
+        hint_lbl = QLabel("(PNG/JPG, 200×200 px)")
+        hint_lbl.setStyleSheet("color: gray; font-size: 11px;")
+        thumb_btns_col.addWidget(hint_lbl)
+        thumb_btns_col.addStretch()
+        thumb_row.addLayout(thumb_btns_col)
+        thumb_row.addStretch()
+
+        right_layout.addLayout(thumb_row)
 
         self.txt_prompt = QTextEdit()
         self.txt_prompt.setPlaceholderText("Nhập mô tả phong cách hình ảnh vào đây...")
@@ -414,9 +448,18 @@ class SettingsTab(QWidget):
         self.cfg.set("channels.default.logo_path", path, auto_save=True)
 
     def _on_lang_changed(self, *_):
-        """Persist UI language preference (auto-save)."""
+        """Persist UI language preference (auto-save) + apply i18n live (M10.2)."""
         idx = self.cmb_lang.currentIndex()
-        self.cfg.set("system.language", "en" if idx == 1 else "vi", auto_save=True)
+        lang = "en" if idx == 1 else "vi"
+        self.cfg.set("system.language", lang, auto_save=True)
+        # ----- M10.2: Apply i18n live (no app restart) -----
+        try:
+            _i18n.set_lang(lang)
+            _i18n.translate_tree(self.window() or self)
+            self.append_log(f"🌐 Ngôn ngữ đã đổi sang: {lang}", "#28A745")
+        except Exception as e:
+            # translate_tree uses tkinter (c) on PySide6 — gracefully skip if not compatible
+            self.append_log(f"⚠ i18n apply failed: {e}", "#D4D4D4")
 
     def _check_for_updates(self):
         """M8: bỏ stub — gọi GitHub API kiểm tra release mới. Offline thì cảnh báo."""
@@ -546,17 +589,82 @@ class SettingsTab(QWidget):
     def _toggle_api_key(self, checked):
         self.inp_key.setEchoMode(QLineEdit.Normal if checked else QLineEdit.Password)
 
+    # ----- M10.1: Thumbnail handlers -----
+    def _browse_thumb(self):
+        """Browse image → load lên QLabel + lưu tạm vào self._current_thumb."""
+        start = getattr(self, "_current_thumb", "") or os.getcwd()
+        file, _ = QFileDialog.getOpenFileName(
+            self, "Chọn ảnh minh họa", start,
+            "Image (*.png *.jpg *.jpeg *.svg);;All Files (*.*)"
+        )
+        if not file:
+            return
+        self._current_thumb = file
+        pix = QPixmap(file)
+        if pix.isNull():
+            QMessageBox.warning(self, "Lỗi", f"Không đọc được ảnh:\n{file}")
+            return
+        self.lbl_preview.setPixmap(pix.scaled(
+            200, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation
+        ))
+        self.lbl_preview.setText("")
+
+    def _set_thumb_preview(self, thumb_path: str | None):
+        """Load ảnh lên QLabel. Nếu path None/invalid → reset về placeholder."""
+        if not thumb_path or not os.path.isfile(thumb_path):
+            self.lbl_preview.setPixmap(QPixmap())  # clear
+            self.lbl_preview.setText("Không có ảnh minh họa")
+            return
+        pix = QPixmap(thumb_path)
+        if pix.isNull():
+            self.lbl_preview.setPixmap(QPixmap())
+            self.lbl_preview.setText("Không đọc được ảnh")
+            return
+        self.lbl_preview.setPixmap(pix.scaled(
+            200, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation
+        ))
+        self.lbl_preview.setText("")
+
+    # ----- M10.1: Hybrid schema helpers -----
+    @staticmethod
+    def _profile_text(value) -> str:
+        """Extract prompt text từ profile value (hybrid: str OR dict)."""
+        if isinstance(value, dict):
+            return str(value.get("prompt", ""))
+        return str(value) if value else ""
+
+    @staticmethod
+    def _profile_thumb(value) -> str | None:
+        """Extract thumb path từ profile value (hybrid). Return None nếu không có."""
+        if isinstance(value, dict):
+            t = value.get("thumb")
+            return t if isinstance(t, str) and t else None
+        return None
+
+    def _build_profile_value(self, text: str, thumb: str | None) -> str | dict:
+        """Build value theo hybrid schema:
+           - Nếu có thumb → dict{"prompt": text, "thumb": path}
+           - Nếu chỉ có text → str (backward-compat)
+        """
+        if thumb and os.path.isfile(thumb):
+            return {"prompt": text, "thumb": thumb}
+        return text
+
     # Profile
     def _on_profile_select(self, current, previous):
-        """Khi user chọn 1 profile trong list → load text vào editor."""
+        """Khi user chọn 1 profile trong list → load text + thumb vào editor."""
         if current is None:
             return
         name = current.text()
-        text = self._data.get("profiles", {}).get(name, "")
+        raw = self._data.get("profiles", {}).get(name, "")
+        text = self._profile_text(raw)
+        thumb = self._profile_thumb(raw)
         self.txt_prompt.setPlainText(text)
+        self._current_thumb = thumb or ""
+        self._set_thumb_preview(thumb)
 
     def _save_profile(self):
-        """Lưu nội dung editor vào profile đang chọn (hoặc tạo mới nếu trống)."""
+        """Lưu nội dung editor + thumb vào profile đang chọn (hoặc tạo mới nếu trống)."""
         current = self.list_profiles.currentItem()
         if current is None:
             # Chưa chọn gì → coi như ADD mới
@@ -564,7 +672,8 @@ class SettingsTab(QWidget):
             return
         name = current.text()
         text = self.txt_prompt.toPlainText().strip()
-        self._data["profiles"][name] = text
+        thumb = getattr(self, "_current_thumb", None)
+        self._data["profiles"][name] = self._build_profile_value(text, thumb)
         self.cfg.save(self._data)
         QMessageBox.information(self, "Đã lưu", f"Đã lưu profile '{name}'.")
         # ----- M8: bắn signal để tab_prompt refresh combobox -----
@@ -579,7 +688,9 @@ class SettingsTab(QWidget):
             QMessageBox.warning(self, "Trùng tên",
                                 f"Profile '{name}' đã tồn tại. Dùng Lưu thay vì Thêm.")
             return
-        self._data["profiles"][name] = self.txt_prompt.toPlainText().strip()
+        text = self.txt_prompt.toPlainText().strip()
+        thumb = getattr(self, "_current_thumb", None)
+        self._data["profiles"][name] = self._build_profile_value(text, thumb)
         self.cfg.save(self._data)
         self._refresh_profile_list()
         # Select profile mới
