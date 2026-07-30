@@ -15,6 +15,22 @@ import time
 import urllib.request
 import urllib.error
 
+# Milestone 1 refactor — re-export pure logic từ domain.visual_style.
+# Backward-compat: code cũ vẫn gọi `ai_prompts._style_caption` đều chạy được.
+from domain.visual_style import (
+    as_json as _as_json,
+    scene_modes_present as _scene_modes_present,
+    scene_mode_keys as _scene_mode_keys,
+    character_keys as _character_keys,
+    style_caption as _style_caption,
+    style_caption_is_empty,
+    style_for_ai as _style_for_ai,
+    strip_mode_keys as _strip_mode_keys,
+    to_text as _to_text,
+    deep_collect as _deep_collect,
+    norm_key as _norm_key,
+)
+
 # Model ưu tiên cho từng NHÀ CUNG CẤP (cái ĐẦU = rẻ/tốt mặc định, sau là dự phòng).
 MODELS = {
     "gemini": ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash-lite"],
@@ -342,38 +358,9 @@ def _parse_array(txt, expected):
     return lines[:expected]
 
 
-def _as_json(style):
-    """Thử đọc Style Profile dạng JSON dict; không phải JSON thì trả None."""
-    try:
-        d = json.loads(style)
-        return d if isinstance(d, dict) else None
-    except Exception:
-        return None
-
-
-def _scene_modes_present(style):
-    d = _as_json(style)
-    return bool(d and isinstance(d.get("scene_modes"), dict) and d["scene_modes"])
-
-
-def _scene_mode_keys(style):
-    d = _as_json(style)
-    if d and isinstance(d.get("scene_modes"), dict):
-        return list(d["scene_modes"].keys())
-    return []
-
-
-def _character_keys(style):
-    """Tên KEY trong 'characters' (vd modern_human, ancient_human). AI đôi khi copy
-    nguyên key có gạch dưới vào prompt -> cần đổi '_' thành khoảng trắng cho dễ đọc."""
-    d = _as_json(style)
-    if d and isinstance(d.get("characters"), dict):
-        return list(d["characters"].keys())
-    return []
-
-
 # ─── Robust style parsing: ĐỌC ĐƯỢC MỌI cấu trúc JSON profile (kể cả lồng / tên lạ) ──
 # Tên field NÉT (cho caption). So khớp substring sau khi chuẩn hoá -> nhận nhiều biến thể.
+# (Constants này giữ ở auto_edit/ai_prompts để không phải expose thêm từ domain.)
 _CAPTION_FIELDS = ("art_style", "artstyle", "art_direction", "line_work", "linework",
                    "lineart", "outline", "shading_lighting", "shading", "rendering",
                    "render_style", "aesthetic", "full_prompt", "full_style_tag", "style_tag")
@@ -384,98 +371,9 @@ _AI_FIELDS = ("scene_mode", "scenes", "color_palette", "colour_palette", "colors
               "camera")
 
 
-def _norm_key(k):
-    return str(k).lower().replace("-", "_").replace(" ", "_")
-
-
-def _to_text(obj):
-    """Làm phẳng dict/list/scalar lồng nhau thành text đọc được (bỏ tên key cho gọn)."""
-    if isinstance(obj, bool):
-        return ""
-    if isinstance(obj, str):
-        return obj.strip()
-    if isinstance(obj, (int, float)):
-        return str(obj)
-    if isinstance(obj, list):
-        return ", ".join(t for t in (_to_text(x) for x in obj) if t)
-    if isinstance(obj, dict):
-        return "; ".join(t for t in (_to_text(v) for v in obj.values()) if t)
-    return ""
-
-
-def _deep_collect(obj, names):
-    """Duyệt ĐỆ QUY: mỗi key khớp tên (substring sau norm) -> lấy text value 1 lần,
-    không đi sâu vào key đã khớp. Nhờ vậy field lồng mấy lớp cũng moi ra được."""
-    out = []
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            if any(n in _norm_key(k) for n in names):
-                t = _to_text(v)
-                if t:
-                    out.append(t)
-            else:
-                out.extend(_deep_collect(v, names))
-    elif isinstance(obj, list):
-        for v in obj:
-            out.extend(_deep_collect(v, names))
-    return out
-
-
-def _style_caption(style):
-    """Câu ART-STYLE CỐ ĐỊNH (text) để TOOL tự ghép vào MỌI prompt.
-
-    ROBUST: đọc được MỌI cấu trúc JSON — tìm sâu các field nét (kể cả lồng / tên lạ),
-    và nếu không khớp tên nào thì FALLBACK làm phẳng cả JSON -> KHÔNG BAO GIỜ rỗng.
-    Profile text thuần -> dùng nguyên văn.
-    """
-    s = (style or "").strip()
-    if not s:
-        return ""
-    d = _as_json(s)
-    if d is None:
-        return s                                   # text thuần -> dùng nguyên
-    parts = _deep_collect(d, _CAPTION_FIELDS)       # gom phần NÉT (tìm sâu)
-    mood = _deep_collect(d, _MOOD_FIELDS)
-    if mood:
-        parts.append("overall mood: " + mood[0])
-    if not parts:
-        # FALLBACK: JSON cấu trúc lạ -> làm phẳng toàn bộ (bỏ phần động scene/character)
-        skip = ("scene_mode", "scenes", "character")
-        leftover = {k: v for k, v in d.items()
-                    if not any(x in _norm_key(k) for x in skip)}
-        flat = _to_text(leftover or d)
-        return flat
-    parts = [p.rstrip(" .") for p in parts if p.strip()]
-    parts = [(p[:1].upper() + p[1:]) for p in parts]   # viết hoa đầu mỗi vế
-    cap = ". ".join(parts)
-    return (cap + ".") if cap else ""
-
-
-def style_caption_is_empty(style):
-    """True nếu profile KHÔNG sinh được caption nét nào (để UI cảnh báo người dùng)."""
-    return not _style_caption(style).strip()
-
-
-def _style_for_ai(style):
-    """Style gửi cho AI: giữ field NỘI DUNG (scene_modes/characters/variety/màu...),
-    bỏ field NÉT (AI bị cấm tả). ROBUST: nhận nhiều tên; nếu không khớp gì ->
-    gửi NGUYÊN JSON để AI tự đọc (không bao giờ rỗng). Text thuần -> giữ nguyên."""
-    d = _as_json(style)
-    if d is None:
-        return (style or "").strip()
-    keep = {k: v for k, v in d.items()
-            if any(n in _norm_key(k) for n in _AI_FIELDS)}
-    return json.dumps(keep, ensure_ascii=False) if keep else (style or "").strip()
-
-
-def _strip_mode_keys(text, keys):
-    """Nếu Gemini lỡ in nguyên tên KEY scene_mode (vd 'ancient_day') vào câu thì
-    đổi gạch dưới thành khoảng trắng cho đọc được ('ancient day'). Chỉ xử lý key
-    CÓ dấu '_' để khỏi đụng các từ thường (night / concept / modern)."""
-    for k in keys:
-        if "_" in k:
-            text = re.sub(r"\b" + re.escape(k) + r"\b", k.replace("_", " "), text)
-    return text
+# (Các helper _as_json, _scene_modes_present, _scene_mode_keys, _character_keys,
+#  _norm_key, _to_text, _deep_collect, _style_caption, style_caption_is_empty,
+#  _style_for_ai, _strip_mode_keys đã được re-export từ domain.visual_style ở phần import.)
 
 
 def _title_context(title):

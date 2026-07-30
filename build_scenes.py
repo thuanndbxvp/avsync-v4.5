@@ -18,54 +18,14 @@ import argparse
 import csv
 import os
 
-import auto_edit as ae   # tái dùng parse_srt
+# Milestone 1 refactor — dùng group_scenes + nearest_veo từ domain.timeline.
+from domain.timeline import group_scenes, nearest_veo_duration, fmt_clock
+import auto_edit as ae   # vẫn dùng ae.parse_srt để CLI cũ chạy được
 
 VEO_LEVELS = [4, 6, 8, 10]   # các mức độ dài clip Veo chọn được
 
 
-def nearest_veo(dur):
-    """Chọn mức Veo gần nhất + % phải đổi tốc độ để khít cảnh.
-    Cảnh DÀI hơn mức Veo tối đa (>10.5s) -> coi là ẢNH TĨNH: Ken Burns kéo đủ giờ
-    khi render, KHÔNG ép clip Veo (tránh hiển thị '% chậm' vô nghĩa). Dùng cho video
-    ngủ / video chậm khi user để 'Số giây mỗi cảnh' lớn (không cần khớp clip)."""
-    if dur > VEO_LEVELS[-1] + 0.5:        # >10.5s -> quá tầm clip Veo -> ảnh tĩnh
-        return "tĩnh", 0.0, "ẢNH TĨNH"
-    level = min(VEO_LEVELS, key=lambda L: abs(L - dur))
-    pct = (dur / level - 1) * 100         # >0: clip phải chậm lại ; <0: nhanh lên
-    if abs(pct) < 1:
-        txt = "khít"
-    else:
-        txt = f"{abs(pct):.0f}% {'chậm' if pct > 0 else 'nhanh'}"
-    return level, pct, txt
-
-
-def fmt(t):
-    h = int(t // 3600); m = int(t % 3600 // 60)
-    s = int(t % 60); ms = int(round((t - int(t)) * 1000))
-    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
-
-
-def group_scenes(segs, target):
-    """Gom các đoạn liền nhau cho tới khi đạt ~target giây thì chốt 1 cảnh."""
-    scenes = []
-    cur = None
-    for s in segs:
-        if cur is None:
-            cur = {"start": s["start"], "end": s["end"], "texts": [s["text"]]}
-            continue
-        # nếu thêm đoạn này mà cảnh vẫn chưa quá dài -> gộp tiếp
-        if s["end"] - cur["start"] <= target:
-            cur["end"] = s["end"]
-            cur["texts"].append(s["text"])
-        else:
-            scenes.append(cur)
-            cur = {"start": s["start"], "end": s["end"], "texts": [s["text"]]}
-    if cur:
-        scenes.append(cur)
-    # nối liền mạch: end của cảnh = start của cảnh kế
-    for i in range(len(scenes) - 1):
-        scenes[i]["end"] = scenes[i + 1]["start"]
-    return scenes
+# (group_scenes, nearest_veo_duration, fmt_clock đã import từ domain.timeline ở phần head)
 
 
 def main():
@@ -82,11 +42,11 @@ def main():
     for i, sc in enumerate(scenes, 1):
         text = " ".join(t.strip() for t in sc["texts"]).strip()
         dur = round(sc["end"] - sc["start"], 2)
-        veo, pct, speed_txt = nearest_veo(dur)
+        veo, pct, speed_txt = nearest_veo_duration(dur, VEO_LEVELS)
         rows.append({
             "scene": i,
-            "start": fmt(sc["start"]),
-            "end": fmt(sc["end"]),
+            "start": fmt_clock(sc["start"]),
+            "end": fmt_clock(sc["end"]),
             "dur": dur,
             "veo_sec": veo,           # mức Veo nên tạo cho cảnh này
             "speed": speed_txt,       # tool sẽ đổi tốc độ chừng này để khít

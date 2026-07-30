@@ -29,6 +29,37 @@ import threading
 import types
 from concurrent.futures import ThreadPoolExecutor
 
+# Milestone 1 refactor — re-export pure logic từ domain + infrastructure.
+# Backward-compat: code cũ vẫn gọi `auto_edit.parse_srt`, `auto_edit._style_caption`...
+# đều chạy được. Strangler pattern: thay vì XÓA, ta move source-of-truth sang
+# `domain/` rồi cho code cũ re-export từ đây.
+from domain.timeline import (
+    ass_time as _ass_time,
+    srt_time_to_sec,
+    parse_srt,
+    parse_srt_from_text,
+    split_word_times as _split_word_times_pure,
+    group_scenes,
+    nearest_veo_duration,
+    fmt_clock as _fmt_clock,
+    hex_to_ass as _hex_to_ass_pure,
+)
+from infrastructure.filesystem import (
+    natural_key,
+    collect_media,
+    app_dir as _app_dir,
+)
+
+
+def _hex_to_ass(hexcol, default="&H0000FFFF"):
+    """Backward-compat shim — gọi sang domain.timeline.hex_to_ass."""
+    return _hex_to_ass_pure(hexcol, default)
+
+
+def _split_word_times(seg):
+    """Backward-compat shim — chia word times theo SUB_UPPERCASE (config cũ)."""
+    return _split_word_times_pure(seg, uppercase=SUB_UPPERCASE)
+
 # Ép stdout/stderr sang UTF-8 để in được tiếng Việt trên console Windows (cp1252)
 for _stream in (sys.stdout, sys.stderr):
     try:
@@ -87,40 +118,6 @@ SUB_SHADOW = 2             # độ đổ bóng (px)
 SUB_MARGIN_V = 70          # khoảng cách từ ĐÁY lên (px) — số NHỎ = sát đáy hơn
 SUB_UPPERCASE = True       # IN HOA toàn bộ phụ đề (False = giữ hoa/thường)
 SUB_KARAOKE_COLOR = "#FFFF00"  # màu chữ khi voice đọc TỚI (karaoke highlight); app chỉnh được
-
-
-def _ass_time(t):
-    """Giây -> 'H:MM:SS.cc' (centisecond) cho file ASS."""
-    h = int(t // 3600); m = int(t % 3600 // 60); s = t % 60
-    return f"{h}:{m:02d}:{int(s):02d}.{int(round((s - int(s)) * 100)):02d}"
-
-
-def _hex_to_ass(hexcol, default="&H0000FFFF"):
-    """#RRGGBB -> ASS &H00BBGGRR (ASS dùng thứ tự BGR). Lỗi -> vàng mặc định."""
-    try:
-        h = str(hexcol).lstrip("#")
-        r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
-        return f"&H00{b:02X}{g:02X}{r:02X}"
-    except Exception:
-        return default
-
-
-def _split_word_times(seg):
-    """Trả [(word, start, end), ...] cho 1 đoạn SRT: chia thời lượng câu cho từng TỪ theo
-    TỈ LỆ SỐ KÝ TỰ (SRT chỉ có mốc theo CÂU -> từ dài giữ lâu hơn, gần khớp giọng). Từ cuối
-    kéo tới hết câu -> các từ nối liền mạch, không hở."""
-    words = " ".join(seg["text"].split()).split(" ")
-    if SUB_UPPERCASE:
-        words = [w.upper() for w in words]
-    weights = [max(1, len(w)) for w in words]
-    tw = sum(weights) or 1
-    total = max(0.0, seg["end"] - seg["start"])
-    out, t = [], seg["start"]
-    for i, w in enumerate(words):
-        d = total * weights[i] / tw if i < len(words) - 1 else max(0.01, seg["end"] - t)
-        out.append((w, t, t + d))
-        t += d
-    return out
 
 
 def _write_ass(srt_path, ass_path, width, height, karaoke_color=SUB_KARAOKE_COLOR,
@@ -188,14 +185,6 @@ def _write_ass(srt_path, ass_path, width, height, karaoke_color=SUB_KARAOKE_COLO
 # ----------------------------------------------------------------------------
 # Tìm FFmpeg / FFprobe (PATH hoặc thư mục cài WinGet)
 # ----------------------------------------------------------------------------
-def _app_dir():
-    """Thư mục chứa .exe (bản đóng gói Nuitka/PyInstaller) hoặc chứa script (dev).
-    Dùng để dò ffmpeg GIAO KÈM đặt cạnh tool -> khách khỏi cài FFmpeg."""
-    if getattr(sys, "frozen", False) or ("__compiled__" in globals()):
-        return os.path.dirname(os.path.abspath(sys.executable))
-    return os.path.dirname(os.path.abspath(__file__))
-
-
 def find_tool(name):
     exe = name + (".exe" if os.name == "nt" else "")
     # 1) Ffmpeg GIAO KÈM cạnh .exe (hoặc thư mục con ffmpeg/bin) -> ưu tiên, khách khỏi cài
@@ -245,59 +234,7 @@ def run(cmd, cwd=None, timeout=None):
     return res
 
 
-# ----------------------------------------------------------------------------
-# Parse SRT
-# ----------------------------------------------------------------------------
-def srt_time_to_sec(t):
-    # 00:00:01,500 -> 1.5
-    h, m, rest = t.split(":")
-    s, ms = rest.replace(".", ",").split(",")
-    return int(h) * 3600 + int(m) * 60 + int(s) + int(ms) / 1000.0
-
-
-def parse_srt(path):
-    """Trả về list [{'start','end','text'}] theo thứ tự thời gian."""
-    with open(path, "r", encoding="utf-8-sig") as f:
-        raw = f.read()
-    raw = raw.replace("\r\n", "\n").replace("\r", "\n").strip()
-    blocks = re.split(r"\n\s*\n", raw)
-    time_re = re.compile(
-        r"(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[,.]\d{1,3})"
-    )
-    segs = []
-    for b in blocks:
-        m = time_re.search(b)
-        if not m:
-            continue
-        lines = b.split("\n")
-        # bỏ dòng số thứ tự và dòng timestamp -> còn lại là text
-        text_lines = [ln for ln in lines if not time_re.search(ln)
-                      and not ln.strip().isdigit()]
-        text = " ".join(ln.strip() for ln in text_lines).strip()
-        segs.append({
-            "start": srt_time_to_sec(m.group(1)),
-            "end": srt_time_to_sec(m.group(2)),
-            "text": text,
-        })
-    segs.sort(key=lambda s: s["start"])
-    return segs
-
-
-# ----------------------------------------------------------------------------
-# Thu thập ảnh / video (sort tự nhiên: 2 trước 10)
-# ----------------------------------------------------------------------------
-def natural_key(s):
-    return [int(t) if t.isdigit() else t.lower()
-            for t in re.split(r"(\d+)", s)]
-
-
-def collect_media(folder):
-    if not os.path.isdir(folder):
-        raise SystemExit(f"Không thấy thư mục ảnh: {folder}")
-    files = [f for f in os.listdir(folder)
-             if f.lower().endswith(IMG_EXTS + VIDEO_EXTS)]
-    files.sort(key=natural_key)
-    return [os.path.join(folder, f) for f in files]
+# (parse_srt + srt_time_to_sec đã được re-export từ domain.timeline ở phần import)
 
 
 def find_voice(input_dir, explicit):
